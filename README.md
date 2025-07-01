@@ -2,6 +2,8 @@
 
 A basic web application for managing financial transactions with role-based (maker-checker pattern) access control.
 
+More Info : [Link](https://patch-jumbo-4d5.notion.site/MAKER-CHECKER-223de2fe6cfa80caad42f008edb88d23)
+
 ---
 
 ## Features
