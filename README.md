@@ -55,7 +55,7 @@ More Info : [Link](https://patch-jumbo-4d5.notion.site/MAKER-CHECKER-223de2fe6cf
 
 ```bash
 # Clone the repository
-git clone <your-repo-url>
+git clone https://github.com/hahaanisha/maker-checker
 
 # Install dependencies
 npm install
