@@ -1,0 +1,12 @@
+[
+  {
+    "role": "maker",
+    "roleId": "maker1",
+    "password": "makerpwd"
+  },
+  {
+    "role": "checker",
+    "roleId": "checker1",
+    "password": "checkerpwd"
+  }
+]

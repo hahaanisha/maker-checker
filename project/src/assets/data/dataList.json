@@ -1,0 +1,22 @@
+[
+  {
+    "id": 101,
+    "fromAccount": "1234567890",
+    "toAccount": "9876543210",
+    "amount": 5000,
+    "currency": "INR",
+    "description": "Salary for June",
+    "status": "PENDING",
+    "links": ["edit", "delete", "authorize", "reject"]
+  },
+  {
+    "id": 102,
+    "fromAccount": "1234567890",
+    "toAccount": "9876543210",
+    "amount": 5000,
+    "currency": "INR",
+    "description": "Salary for June",
+    "status": "PENDING",
+    "links": ["edit", "delete", "authorize", "reject"]
+  }
+]

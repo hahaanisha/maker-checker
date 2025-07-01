@@ -1,0 +1,9 @@
+<main class="login-container">
+  <form #loginForm="ngForm" (ngSubmit)="onLogin(loginForm.value)">
+    <h2>Login</h2>
+    <input type="text" name="role" placeholder="Role (maker/checker)" ngModel required />
+    <input type="password" name="password" placeholder="Password" ngModel required />
+    <button type="submit" [disabled]="!loginForm.valid">Login</button>
+    <p *ngIf="errorMessage" class="error-message">{{ errorMessage }}</p>
+  </form>
+</main>

@@ -1,0 +1,22 @@
+/* src/app/status-cell-renderer/status-cell-renderer.component.scss */
+.status-pending {
+  color: #ffc107;
+  font-weight: bold;
+}
+
+.status-accepted {
+  color: #28a745;
+  font-weight: bold;
+}
+
+.status-rejected {
+  color: #dc3545;
+  font-weight: bold;
+}
+
+.status-deleted {
+  color: #6c757d;
+  font-weight: bold;
+  text-decoration: line-through;
+  opacity: 0.7;
+}

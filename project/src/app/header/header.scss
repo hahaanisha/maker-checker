@@ -1,0 +1,18 @@
+.navbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem;
+  background-color: #1976d2;
+  color: white;
+  font-weight: 600;
+   font-family: 'Inter', sans-serif;
+   font-weight: 600;
+   font-size: 18px;
+}
+
+.nav-links button{
+  height: 35px;
+  width: 85px;
+  border-radius: 30px;
+}
