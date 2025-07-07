@@ -202,9 +202,11 @@ export class HomeComponent implements OnInit {
   }
 
   toggleAddForm(): void {
-    this.closeAllModalsAndSidebars();
-    this.showAddForm = !this.showAddForm;
+    this.closeAllModalsAndSidebars(); // Close everything first
+    this.showAddForm = !this.showAddForm; // Then toggle add form
     this.nextNewTransactionId = this.generateNextTransactionId();
+    console.log('HomeComponent: toggleAddForm. showAddForm:', this.showAddForm);
+    this.changeDetectorRef.detectChanges();
   }
 
   onSearchChange(searchTerm: string): void {
@@ -213,9 +215,12 @@ export class HomeComponent implements OnInit {
   }
 
   onEditClick(transaction: Transaction): void {
-    this.editingTransaction = { ...transaction };
-    this.showEditForm = true;
-    this.closeAllModalsAndSidebars();
+    console.log('HomeComponent: onEditClick called for transaction', transaction.id);
+    this.closeAllModalsAndSidebars(); // Ensure all other modals/sidebars/forms are closed
+    this.editingTransaction = { ...transaction }; // Set the transaction to be edited
+    this.showEditForm = true; // Show the edit form
+    console.log('HomeComponent: onEditClick. showEditForm:', this.showEditForm, 'editingTransaction:', this.editingTransaction?.id);
+    this.changeDetectorRef.detectChanges(); // Force change detection
   }
 
   onTransactionAdded(newTxn: Transaction): void {
@@ -243,6 +248,8 @@ export class HomeComponent implements OnInit {
       )
       .subscribe(() => {
         this.showAddForm = false;
+        console.log('HomeComponent: Transaction added. showAddForm:', this.showAddForm);
+        this.changeDetectorRef.detectChanges();
       });
   }
 
@@ -277,10 +284,14 @@ export class HomeComponent implements OnInit {
         .subscribe(() => {
           this.showEditForm = false;
           this.editingTransaction = null;
+          console.log('HomeComponent: Transaction updated. showEditForm:', this.showEditForm);
+          this.changeDetectorRef.detectChanges();
         });
     } else {
       this.showEditForm = false;
       this.editingTransaction = null;
+      console.log('HomeComponent: Transaction not found for update. showEditForm:', this.showEditForm);
+      this.changeDetectorRef.detectChanges();
     }
   }
 
@@ -288,6 +299,8 @@ export class HomeComponent implements OnInit {
     this.showAddForm = false;
     this.showEditForm = false;
     this.editingTransaction = null;
+    console.log('HomeComponent: Form cancelled. showAddForm:', this.showAddForm, 'showEditForm:', this.showEditForm);
+    this.changeDetectorRef.detectChanges();
   }
 
   onGridApiReady(api: GridApi): void {
@@ -298,6 +311,7 @@ export class HomeComponent implements OnInit {
   onRowSelected(event: { selectedCount: number; selectedRows: Transaction[] }): void {
     this.selectedRowCount = event.selectedCount;
     this.showMassActions = event.selectedCount > 0;
+    console.log('HomeComponent: Row selected. selectedRowCount:', this.selectedRowCount, 'showMassActions:', this.showMassActions);
     this.changeDetectorRef.detectChanges();
   }
 
@@ -339,6 +353,7 @@ export class HomeComponent implements OnInit {
 
     this.modalMessage = confirmationMessage;
     this.showConfirmModal = true;
+    console.log('HomeComponent: confirmMassAction. showConfirmModal:', this.showConfirmModal, 'actionType:', actionType);
     this.changeDetectorRef.detectChanges();
   }
 
@@ -346,6 +361,7 @@ export class HomeComponent implements OnInit {
     if (this.modalAction) {
       this.modalAction();
     }
+    console.log('HomeComponent: executeModalAction');
   }
 
   promptForRejectionReason(transactionIds: string[]): void {
@@ -355,6 +371,7 @@ export class HomeComponent implements OnInit {
     this.massActionType = 'reject';
     this.rejectionReasonInput = '';
     this.showReasonModal = true;
+    console.log('HomeComponent: promptForRejectionReason. showReasonModal:', this.showReasonModal);
     this.changeDetectorRef.detectChanges();
   }
 
@@ -368,10 +385,12 @@ export class HomeComponent implements OnInit {
         this.callUpdateTransactionStatus([this.currentTransactionForReasonId], 'REJECTED', reason);
       }
     }
+    console.log('HomeComponent: Rejection reason submitted.');
   }
 
   onRejectionReasonCancel(): void {
     this.cancelRejectionReason();
+    console.log('HomeComponent: Rejection reason cancelled.');
   }
 
   callUpdateTransactionStatus(
@@ -381,44 +400,6 @@ export class HomeComponent implements OnInit {
   ): void {
     const byUser = this.role || 'Unknown Checker';
     
-    // Create a map to store original transactions for potential rollback
-    const originalTransactionsMap = new Map<string, Transaction>();
-
-    // Optimistically update UI
-    ids.forEach(id => {
-      const index = this.transactionList.findIndex(txn => txn.id === id);
-      if (index !== -1) {
-        originalTransactionsMap.set(id, { ...this.transactionList[index] }); // Store original
-
-        const updatedTxn = { ...this.transactionList[index] }; // Create a mutable copy for optimistic update
-        updatedTxn.status = newStatus;
-
-        if (newStatus === 'ACCEPTED') {
-          updatedTxn.acceptedAt = new Date().toISOString();
-          updatedTxn.acceptedBy = byUser;
-          delete updatedTxn.rejectedAt;
-          delete updatedTxn.rejectionReason;
-          delete updatedTxn.rejectedBy;
-        } else if (newStatus === 'REJECTED') {
-          updatedTxn.rejectedAt = new Date().toISOString();
-          updatedTxn.rejectedBy = byUser;
-          updatedTxn.rejectionReason = rejectionReason;
-          delete updatedTxn.acceptedAt;
-          delete updatedTxn.acceptedBy;
-        } else { // DELETED
-          delete updatedTxn.acceptedAt;
-          delete updatedTxn.acceptedBy;
-          delete updatedTxn.rejectedAt;
-          delete updatedTxn.rejectionReason;
-          delete updatedTxn.rejectedBy;
-        }
-        this.transactionList[index] = updatedTxn; // Apply optimistic update
-      }
-    });
-
-    this.sortTransactionsByCreatedAt();
-    this.updateGridDataAndFilters();
-
     const updateObservables: Observable<Transaction>[] = ids.map(id => {
       if (newStatus === 'DELETED') {
         return this.transactionService.deleteTransaction(id, byUser);
@@ -429,15 +410,8 @@ export class HomeComponent implements OnInit {
 
     forkJoin(updateObservables)
       .pipe(
-        tap((responses: Transaction[]) => {
-          responses.forEach(responseTxn => {
-            const index = this.transactionList.findIndex(t => t.id === responseTxn.id);
-            if (index !== -1) {
-              this.transactionList[index] = responseTxn; // Update with actual backend response
-            }
-          });
-          this.sortTransactionsByCreatedAt();
-          this.updateGridDataAndFilters();
+        tap(() => {
+          this.loadTransactions();
           this.closeConfirmModal();
           this.cancelRejectionReason();
         }),
@@ -445,17 +419,11 @@ export class HomeComponent implements OnInit {
           this.gridApi?.deselectAll();
           this.selectedRowCount = 0;
           this.showMassActions = false;
+          console.log('HomeComponent: Mass action finalized. selectedRowCount:', this.selectedRowCount, 'showMassActions:', this.showMassActions);
           this.changeDetectorRef.detectChanges();
         }),
         catchError(err => {
-          ids.forEach(id => {
-            const index = this.transactionList.findIndex(txn => txn.id === id);
-            const originalTxn = originalTransactionsMap.get(id);
-            if (index !== -1 && originalTxn) {
-              this.transactionList[index] = originalTxn; // Rollback
-            }
-          });
-          this.loadTransactions(); // Re-fetch to ensure data consistency after error
+          this.loadTransactions();
           return of(null);
         })
       )
@@ -468,26 +436,31 @@ export class HomeComponent implements OnInit {
     this.selectedTransaction = txn || null;
     this.sidebarActiveTab = txn ? 'overview' : 'filter';
     this.currentFilterOptions = { ...this.filterOptions };
+    console.log('HomeComponent: openSidebar. showSidebar:', this.showSidebar);
     this.changeDetectorRef.detectChanges();
   }
 
   onSidebarClose(): void {
     this.closeSidebar();
+    console.log('HomeComponent: Sidebar closed via event.');
   }
 
   onSidebarTabChange(tab: 'overview' | 'history' | 'filter'): void {
     this.sidebarActiveTab = tab;
+    console.log('HomeComponent: Sidebar tab changed to:', tab);
   }
 
   onFilterOptionsApplied(filters: FilterOptions): void {
     this.filterOptions = { ...filters };
     this.updateGridDataAndFilters();
     this.closeSidebar();
+    console.log('HomeComponent: Filters applied.');
   }
 
   onFilterOptionsCleared(): void {
     this.clearFilterOptions();
     this.closeSidebar();
+    console.log('HomeComponent: Filters cleared.');
   }
 
   private clearFilterOptions(): void {
@@ -502,6 +475,7 @@ export class HomeComponent implements OnInit {
     };
     this.currentFilterOptions = { ...this.filterOptions };
     this.searchTerm = '';
+    console.log('HomeComponent: Filter options cleared internally.');
   }
 
   closeConfirmModal(): void {
@@ -509,6 +483,7 @@ export class HomeComponent implements OnInit {
     this.modalMessage = '';
     this.modalAction = null;
     this.massActionType = null;
+    console.log('HomeComponent: Confirm modal closed.');
     this.changeDetectorRef.detectChanges();
   }
 
@@ -518,6 +493,7 @@ export class HomeComponent implements OnInit {
     this.transactionsToRejectIds = [];
     this.rejectionReasonInput = '';
     this.massActionType = null;
+    console.log('HomeComponent: Rejection reason modal cancelled.');
     this.changeDetectorRef.detectChanges();
   }
 
@@ -526,8 +502,9 @@ export class HomeComponent implements OnInit {
     this.selectedTransaction = null;
     this.sidebarActiveTab = 'overview';
     this.gridApi?.deselectAll();
-    this.selectedRowCount = 0;
-    this.showMassActions = false;
+    this.selectedRowCount = 0; // Ensure mass actions are hidden
+    this.showMassActions = false; // Ensure mass actions are hidden
+    console.log('HomeComponent: Sidebar closed. selectedRowCount:', this.selectedRowCount, 'showMassActions:', this.showMassActions);
     this.changeDetectorRef.detectChanges();
   }
 
@@ -540,8 +517,9 @@ export class HomeComponent implements OnInit {
     this.selectedTransaction = null;
     this.sidebarActiveTab = 'overview';
     this.gridApi?.deselectAll();
-    this.selectedRowCount = 0;
-    this.showMassActions = false;
+    this.selectedRowCount = 0; // Explicitly reset for safety
+    this.showMassActions = false; // Explicitly reset for safety
+    console.log('HomeComponent: All modals/sidebars closed. showAddForm:', this.showAddForm, 'showEditForm:', this.showEditForm, 'showMassActions:', this.showMassActions);
     this.changeDetectorRef.detectChanges();
   }
 }

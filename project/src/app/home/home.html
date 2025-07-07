@@ -1,5 +1,5 @@
 <main class="home-container">
-  <div class="create-btn" *ngIf="role === 'maker'">
+  <div class="create-btn" *ngIf="role === 'maker'|| role=== 'admin' ">
     <button (click)="toggleAddForm()">CREATE NEW TRANSACTION</button>
   </div>
 
@@ -29,7 +29,7 @@
         gridApi.getDisplayedRowCount() || 0 }}</ng-container>)
       <ng-template #rejectedTotal>{{ getTransactionsCountForTab('REJECTED') }}</ng-template>
     </button>
-    <button [class.active]="activeTab === 'DELETED'" (click)="selectTab('DELETED')" *ngIf="role === 'maker'">
+    <button [class.active]="activeTab === 'DELETED'" (click)="selectTab('DELETED')" *ngIf="role === 'maker'|| role==='admin' ">
       Deleted (<ng-container *ngIf="activeTab === 'DELETED' && gridApi; else deletedTotal">{{
         gridApi.getDisplayedRowCount() || 0 }}</ng-container>)
       <ng-template #deletedTotal>{{ getTransactionsCountForTab('DELETED') }}</ng-template>

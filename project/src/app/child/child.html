@@ -1,0 +1,11 @@
+<div class="child-container">
+    <h3>I am Child</h3>
+    <div *ngIf="name|| address || email; else noData"></div>
+    <p><Strong>Name:</Strong>{{name}}</p>
+    <p><Strong>Address</Strong>{{address}}</p>
+    <p><Strong>Email</Strong>{{email}}</p>
+</div>
+
+<ng-template #noData>
+<p>No data recieved from parent</p>
+</ng-template>

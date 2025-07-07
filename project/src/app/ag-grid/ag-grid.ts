@@ -1,20 +1,16 @@
-
 import { Component, Input, Output, EventEmitter, OnInit, OnChanges, SimpleChanges, inject } from '@angular/core';
 import { CommonModule, DatePipe } from '@angular/common';
 
-// AG Grid Imports
 import { AgGridAngular } from 'ag-grid-angular';
 import { ColDef, GridApi, GridOptions, RowClickedEvent, ModuleRegistry, AllCommunityModule } from 'ag-grid-community';
-;
 
-import 'ag-grid-community/styles/ag-grid.css';
-import 'ag-grid-community/styles/ag-theme-alpine.css';
-
+import 'ag-grid-community/styles/ag-grid.css'; // Keep this if you want to use ag-theme-alpine
+import 'ag-grid-community/styles/ag-theme-alpine.css'; // Keep this if you want to use ag-theme-alpine
 
 import { StatusCellRendererComponent } from '../status-cell-renderer/status-cell-renderer.component';
 import { ActionsCellRendererComponent } from '../actions-cell-renderer/actions-cell-renderer.component';
 
-import { Transaction } from '../interfaces/transaction.interface'; // Import the Transaction interface
+import { Transaction } from '../interfaces/transaction.interface';
 
 ModuleRegistry.registerModules([AllCommunityModule]);
 
@@ -31,7 +27,6 @@ ModuleRegistry.registerModules([AllCommunityModule]);
   templateUrl: './ag-grid.html',
   styleUrls: ['./ag-grid.scss']
 })
-
 export class TransactionTableComponent implements OnInit, OnChanges {
   @Input() rowData: Transaction[] = [];
   @Input() role: string | null = null;
@@ -42,6 +37,7 @@ export class TransactionTableComponent implements OnInit, OnChanges {
   @Output() gridApiReady = new EventEmitter<GridApi>();
   @Output() rowSelected = new EventEmitter<{ selectedCount: number; selectedRows: Transaction[] }>();
   @Output() rowClicked = new EventEmitter<Transaction>();
+  // Outputs to HomeComponent for individual row actions
   @Output() editClicked = new EventEmitter<Transaction>();
   @Output() deleteClicked = new EventEmitter<string>();
   @Output() acceptClicked = new EventEmitter<string>();
@@ -67,11 +63,16 @@ export class TransactionTableComponent implements OnInit, OnChanges {
         actionsCellRenderer: ActionsCellRendererComponent,
       },
       context: {
-        parentComponent: this,
+        // Pass 'this' (TransactionTableComponent instance) to the cell renderer context
+        // The cell renderer will now call methods directly on this component.
+        parentComponent: this, 
         role: this.role
       },
       rowSelection: 'multiple',
-      suppressRowClickSelection: true,
+      rowMultiSelectWithClick: true,
+      enableCellTextSelection: true,
+      ensureDomOrder: true,
+      
       onSelectionChanged: (params) => {
         if (this.gridApi) {
           const selectedRows = this.gridApi.getSelectedRows();
@@ -130,8 +131,8 @@ export class TransactionTableComponent implements OnInit, OnChanges {
   public columnDefs: ColDef[] = [
     {
       headerName: '',
-      checkboxSelection: true,
       headerCheckboxSelection: true,
+      checkboxSelection: true,
       width: 40,
       minWidth: 40,
       maxWidth: 40,
@@ -195,9 +196,9 @@ export class TransactionTableComponent implements OnInit, OnChanges {
     {
       headerName: 'Actions',
       cellRenderer: 'actionsCellRenderer',
-      width: 180,
-      minWidth: 180,
-      maxWidth: 180,
+      width: 320,
+      minWidth: 320,
+      maxWidth: 320,
       sortable: false,
       filter: false,
       resizable: false,
@@ -272,6 +273,7 @@ export class TransactionTableComponent implements OnInit, OnChanges {
       this.gridApi.paginationGoToPreviousPage();
     }
   }
+
 
   onEdit(transaction: Transaction): void {
     this.editClicked.emit(transaction);

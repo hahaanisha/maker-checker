@@ -1,0 +1,39 @@
+.child-container{
+    border: 1px dashed #66bb6a;
+    padding: 15px;
+    margin-top: 20px;
+    border-radius: 5px;
+    background-color: #f0fdf0;
+    text-align: center;
+   width: fit-content;
+  margin: 50px auto; 
+    
+}
+
+h3{
+    color: #388e3c;
+    margin-top: 0;
+}
+
+p{
+    margin-bottom: 5px;
+    color: #444;
+}
+
+strong{
+    color: #222;
+}
+
+button{
+    background-color: #388e3c;
+    color: white;
+    padding: 10px 15px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 16px;
+}
+
+button:hover{
+    background-color: #217125;
+}

@@ -16,11 +16,6 @@ export class LoginComponent {
 
   constructor(private http: HttpClient, private router: Router) {}
 
-  /**
-   * Handles the login form submission.
-   * Authenticates user against role.json and redirects on success.
-   * @param form The form data submitted by the user.
-   */
   onLogin(form: any): void {
     this.errorMessage = ''; // Clear previous error messages
     this.http.get<any[]>('assets/data/role.json').subscribe({
