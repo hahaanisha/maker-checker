@@ -18,3 +18,15 @@ export class App {
     return !!localStorage.getItem('role');
   }
 }
+
+
+// @Component({
+//   selector: 'app-root',
+//   standalone: true,
+//   imports: [RouterOutlet],
+//   templateUrl: './app.html',
+//   styleUrls: ['./app.scss']
+// })
+// export class App {
+//   title = 'parent-child-routing';
+// }
