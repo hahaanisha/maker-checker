@@ -1,117 +1,18 @@
-<!-- src/app/home/home.html -->
 <main class="home-container">
-  <!-- Create button - visible only to Maker -->
   <div class="create-btn" *ngIf="role === 'maker'">
     <button (click)="toggleAddForm()">CREATE NEW TRANSACTION</button>
   </div>
 
-  <!-- Add Transaction Form -->
-  <div *ngIf="showAddForm" class="modal-overlay">
-    <div class="modal-content">
-      <h3>Add New Transaction</h3>
-      <form #txnForm="ngForm" (ngSubmit)="addTransaction(txnForm)">
-        <div class="form-group">
-          <label for="fromAccount">From Account:</label>
-          <input type="text" id="fromAccount" name="fromAccount" placeholder="From Account" ngModel required
-            #fromAccountInput="ngModel" />
-          <div *ngIf="fromAccountInput.invalid && (fromAccountInput.dirty || fromAccountInput.touched)"
-            class="error-message">
-            <div *ngIf="fromAccountInput.errors?.['required']">From Account is required.</div>
-          </div>
-        </div>
+  <app-transaction-form
+    *ngIf="showAddForm || showEditForm"
+    [isEditMode]="showEditForm"
+    [transaction]="editingTransaction"
+    [nextTransactionId]="nextNewTransactionId"
+    (transactionAdded)="onTransactionAdded($event)"
+    (transactionUpdated)="onTransactionUpdated($event)"
+    (cancel)="onTransactionFormCancel()"
+  ></app-transaction-form>
 
-        <div class="form-group">
-          <label for="toAccount">To Account:</label>
-          <input type="text" id="toAccount" name="toAccount" placeholder="To Account" ngModel required
-            #toAccountInput="ngModel" />
-          <div *ngIf="toAccountInput.invalid && (toAccountInput.dirty || toAccountInput.touched)" class="error-message">
-            <div *ngIf="toAccountInput.errors?.['required']">To Account is required.</div>
-          </div>
-        </div>
-
-        <div class="form-group">
-          <label for="amount">Amount:</label>
-          <input type="number" id="amount" name="amount" placeholder="Amount" ngModel required min="0.01"
-            #amountInput="ngModel" />
-          <div *ngIf="amountInput.invalid && (amountInput.dirty || amountInput.touched)" class="error-message">
-            <div *ngIf="amountInput.errors?.['required']">Amount is required.</div>
-            <div *ngIf="amountInput.errors?.['min']">Amount must be positive.</div>
-          </div>
-        </div>
-
-        <div class="form-group">
-          <label for="currency">Currency:</label>
-          <input type="text" id="currency" name="currency" placeholder="Currency (e.g., USD, EUR)" ngModel required
-            #currencyInput="ngModel" />
-          <div *ngIf="currencyInput.invalid && (currencyInput.dirty || currencyInput.touched)" class="error-message">
-            <div *ngIf="currencyInput.errors?.['required']">Currency is required.</div>
-          </div>
-        </div>
-
-        <div class="form-group">
-          <label for="description">Description:</label>
-          <input type="text" id="description" name="description" placeholder="Description" ngModel required
-            #descriptionInput="ngModel" />
-          <div *ngIf="descriptionInput.invalid && (descriptionInput.dirty || descriptionInput.touched)"
-            class="error-message">
-            <div *ngIf="descriptionInput.errors?.['required']">Description is required.</div>
-          </div>
-        </div>
-
-        <div class="form-actions">
-          <button type="submit" [disabled]="!txnForm.form.valid">Submit</button>
-          <button type="button" (click)="toggleAddForm()">Cancel</button>
-        </div>
-      </form>
-    </div>
-  </div>
-
-  <!-- Edit Transaction Form (Modal-like) -->
-  <div *ngIf="showEditForm && editingTransaction" class="modal-overlay">
-    <div class="modal-content">
-      <h3>Edit Transaction: {{ editingTransaction.id }}</h3>
-      <form #editTxnForm="ngForm" (ngSubmit)="updateTransaction(editTxnForm)">
-        <input type="hidden" name="id" [ngModel]="editingTransaction.id" />
-
-        <div class="form-group">
-          <label for="editFromAccount">From Account:</label>
-          <input type="text" id="editFromAccount" name="fromAccount" placeholder="From Account"
-            [ngModel]="editingTransaction.fromAccount" required />
-        </div>
-
-        <div class="form-group">
-          <label for="editToAccount">To Account:</label>
-          <input type="text" id="editToAccount" name="toAccount" placeholder="To Account"
-            [ngModel]="editingTransaction.toAccount" required />
-        </div>
-
-        <div class="form-group">
-          <label for="editAmount">Amount:</label>
-          <input type="number" id="editAmount" name="amount" placeholder="Amount" [ngModel]="editingTransaction.amount"
-            required min="0.01" />
-        </div>
-
-        <div class="form-group">
-          <label for="editCurrency">Currency:</label>
-          <input type="text" id="editCurrency" name="currency" placeholder="Currency"
-            [ngModel]="editingTransaction.currency" required />
-        </div>
-
-        <div class="form-group">
-          <label for="editDescription">Description:</label>
-          <input type="text" id="editDescription" name="description" placeholder="Description"
-            [ngModel]="editingTransaction.description" required />
-        </div>
-
-        <div class="form-actions">
-          <button type="submit" [disabled]="!editTxnForm.valid">Update</button>
-          <button type="button" (click)="cancelEdit()">Cancel</button>
-        </div>
-      </form>
-    </div>
-  </div>
-
-  <!-- Tabs for transaction status -->
   <div class="tabs">
     <button [class.active]="activeTab === 'PENDING'" (click)="selectTab('PENDING')">
       Pending (<ng-container *ngIf="activeTab === 'PENDING' && gridApi; else pendingTotal">{{
@@ -135,7 +36,6 @@
     </button>
   </div>
 
-  <!-- Search Bar and Filter Icon Container -->
   <div class="search-and-filter-container">
     <div class="search-bar">
       <input type="text" placeholder="Search transactions here" [ngModel]="searchTerm"
@@ -144,292 +44,46 @@
     <span class="filter-icon material-icons" (click)="openSidebar()">filter_list</span>
   </div>
 
-  <!-- Transactions Table (AG Grid) -->
-  <div class="table-container ag-theme-alpine">
-    <h2>{{ activeTab }} Transactions</h2>
+  <app-transaction-table
+    [rowData]="agGridDisplayData"
+    [role]="role"
+    [activeTab]="activeTab"
+    [selectedRowCount]="selectedRowCount"
+    [showMassActions]="showMassActions"
+    (gridApiReady)="onGridApiReady($event)"
+    (rowSelected)="onRowSelected($event)"
+    (rowClicked)="onRowClicked($event)"
+    (editClicked)="onEditClick($event)"
+    (deleteClicked)="confirmMassAction('delete', [$event])"
+    (acceptClicked)="confirmMassAction('accept', [$event])"
+    (rejectClicked)="promptForRejectionReason([$event])"
+    (massDeleteClicked)="confirmMassAction('delete')"
+    (massAcceptClicked)="confirmMassAction('accept')"
+    (massRejectClicked)="confirmMassAction('reject')"
+  ></app-transaction-table>
 
-    <ag-grid-angular
-      style="width: 100%; height: 100%;"
-      [columnDefs]="columnDefs"
-      [rowData]="agGridDisplayData"
-      [gridOptions]="gridOptions"
-      />
+  <app-sidebar
+    [isOpen]="showSidebar"
+    [selectedTransaction]="selectedTransaction"
+    [activeTab]="sidebarActiveTab"
+    [filterOptions]="currentFilterOptions"
+    (closeSidebar)="onSidebarClose()"
+    (tabChange)="onSidebarTabChange($event)"
+    (applyFilters)="onFilterOptionsApplied($event)"
+    (clearFilters)="onFilterOptionsCleared()"
+  ></app-sidebar>
 
-    <!-- Display "No transactions" message ONLY if filtered data is empty -->
-    <div *ngIf="agGridDisplayData.length === 0" class="no-transactions-message">
-      No transactions to display for the current selection.
-    </div>
+  <app-rejection-reason-modal
+    *ngIf="showReasonModal"
+    [transactionId]="currentTransactionForReasonId"
+    (reasonSubmitted)="onRejectionReasonSubmitted($event)"
+    (cancel)="onRejectionReasonCancel()"
+  ></app-rejection-reason-modal>
 
-    <!-- Custom Pagination Controls -->
-    <div class="pagination-controls" *ngIf="gridApi && totalPages > 1">
-      <button (click)="prevPage()" [disabled]="currentPageNumber === 1">Prev</button>
-      
-      <ng-container *ngFor="let pageNum of getPaginationPageNumbers()">
-        <ng-container *ngIf="pageNum !== -1">
-          <button
-            (click)="goToPage(pageNum)"
-            [class.active]="currentPageNumber === pageNum"
-          >
-            {{ pageNum }}
-          </button>
-        </ng-container>
-        <ng-container *ngIf="pageNum === -1">
-          <span class="ellipsis">...</span>
-        </ng-container>
-      </ng-container>
-
-      <button (click)="nextPage()" [disabled]="currentPageNumber === totalPages">Next</button>
-    </div>
-
-    <!--Selected Rows Count and Mass Action Buttons -->
-    <div class="selected-rows-info" *ngIf="showMassActions">
-      <span>{{ selectedRowCount }} rows selected</span>
-      <div class="mass-action-buttons">
-        <button
-          class="mass-delete-btn"
-          *ngIf="role === 'maker'"
-          (click)="confirmMassAction('delete')"
-          [disabled]="activeTab !== 'PENDING' && activeTab !== 'ACCEPTED' && activeTab !== 'REJECTED'">
-          Delete All
-        </button>
-        <button
-          class="mass-accept-btn"
-          *ngIf="role === 'checker'"
-          (click)="confirmMassAction('accept')"
-          [disabled]="activeTab !== 'PENDING'"
-        >
-          Accept All
-        </button>
-        <button
-          class="mass-reject-btn"
-          *ngIf="role === 'checker'"
-          (click)="promptForRejectionReason(getSelectedTransactionIds())"
-          [disabled]="activeTab !== 'PENDING'"
-        >
-          Reject All
-        </button>
-      </div>
-    </div>
-    
-  </div>
-
-  
-  
-  <!-- Sidebar Overlay -->
-  <div class="sidebar-overlay" [class.open]="showSidebar" (click)="closeSidebar()"></div>
-
-  <!-- Sidebar Content -->
-  <div class="sidebar" [class.open]="showSidebar">
-    <!-- NEW: Sidebar Status Tag (re-added as requested) -->
-    <div *ngIf="selectedTransaction" class="sidebar-status">
-      <p class="status-tag">
-        <span [ngClass]="{
-            'status-pending': selectedTransaction.status === 'PENDING',
-            'status-accepted': selectedTransaction.status === 'ACCEPTED',
-            'status-rejected': selectedTransaction.status === 'REJECTED',
-            'status-deleted': selectedTransaction.status === 'DELETED'
-          }">
-          {{ selectedTransaction.status }}
-        </span>
-      </p>
-    </div>
-
-    <div class="sidebar-header"> 
-      <h3>
-        <ng-container *ngIf="sidebarActiveTab === 'overview' && selectedTransaction">Transaction Details</ng-container>
-        <ng-container *ngIf="sidebarActiveTab === 'history' && selectedTransaction">Transaction History</ng-container>
-        <ng-container *ngIf="sidebarActiveTab === 'filter'">Filter Options</ng-container>
-      </h3>
-      <button class="close-sidebar-btn" (click)="closeSidebar()">X</button>
-    </div>
-
-    <div class="sidebar-tabs">
-      <ng-container *ngIf="selectedTransaction">
-        <button [class.active]="sidebarActiveTab === 'overview'" (click)="selectSidebarTab('overview')"
-          [disabled]="!selectedTransaction">Overview</button>
-        <button [class.active]="sidebarActiveTab === 'history'" (click)="selectSidebarTab('history')"
-          [disabled]="!selectedTransaction">History</button>
-      </ng-container>
-      <ng-container *ngIf="!selectedTransaction">
-        <button [class.active]="sidebarActiveTab === 'filter'" (click)="selectSidebarTab('filter')">Filter</button>
-      </ng-container>
-    </div>
-
-    <!-- Conditional content panes for details/history -->
-    <div *ngIf="selectedTransaction" class="sidebar-content">
-      <!-- Overview Tab Content -->
-      <div *ngIf="sidebarActiveTab === 'overview'" class="tab-pane">
-        <h4>Overview for {{ selectedTransaction.id }}</h4>
-        <p><strong>From Account:</strong> {{ selectedTransaction.fromAccount }}</p>
-        <p><strong>To Account:</strong> {{ selectedTransaction.toAccount }}</p>
-        <p><strong>Amount:</strong> {{ selectedTransaction.amount }} {{ selectedTransaction.currency }}</p>
-        <p><strong>Description:</strong> {{ selectedTransaction.description }}</p>
-        <!-- Status moved to the general overview section if needed, or rely on main table -->
-        <!-- <p><strong>Status:</strong>
-          <span [ngClass]="{
-            'status-pending': selectedTransaction.status === 'PENDING',
-            'status-accepted': selectedTransaction.status === 'ACCEPTED',
-            'status-rejected': selectedTransaction.status === 'REJECTED',
-            'status-deleted': selectedTransaction.status === 'DELETED'
-          }">
-            {{ selectedTransaction.status }}
-          </span>
-        </p> -->
-        <p *ngIf="selectedTransaction.status === 'REJECTED' && selectedTransaction.rejectionReason">
-          <strong>Reason:</strong> {{ selectedTransaction.rejectionReason }}
-        </p>
-      </div>
-
-      <!-- History Tab Content (Timeline-like) - LIFO order -->
-      <div *ngIf="sidebarActiveTab === 'history'" class="tab-pane timeline">
-        <h4>History for Transaction: {{ selectedTransaction.id }}</h4>
-
-        <div class="timeline-event" *ngIf="selectedTransaction.rejectedAt">
-          <div class="timeline-icon timeline-rejected">
-            <span class="material-icons">cancel</span>
-          </div>
-          <div class="timeline-content">
-            <div class="timeline-title">Transaction Rejected</div>
-            <div class="timeline-detail">
-              By {{ selectedTransaction.rejectedBy || 'Unknown' }} on
-              {{ datePipe.transform(selectedTransaction.rejectedAt, 'medium') }}
-            </div>
-            <div class="timeline-reason" *ngIf="selectedTransaction.rejectionReason">
-              <b>Reason for Rejection:</b> <br>{{ selectedTransaction.rejectionReason }}
-            </div>
-          </div>
-        </div>
-
-        <div class="timeline-event" *ngIf="selectedTransaction.acceptedAt">
-          <div class="timeline-icon timeline-accepted">
-            <span class="material-icons">check_circle</span>
-          </div>
-          <div class="timeline-content">
-            <div class="timeline-title">Transaction Approved</div>
-            <div class="timeline-detail">
-              By {{ selectedTransaction.acceptedBy || 'Unknown' }} on
-              {{ datePipe.transform(selectedTransaction.acceptedAt, 'medium') }}
-            </div>
-          </div>
-        </div>
-
-        <div class="timeline-event" *ngIf="selectedTransaction.createdAt">
-          <div class="timeline-icon">
-            <span class="material-icons">add_circle_outline</span>
-          </div>
-          <div class="timeline-content">
-            <div class="timeline-title">Transaction Created</div>
-            <div class="timeline-detail">
-              By {{ selectedTransaction.createdBy || 'Unknown' }} on
-              {{ datePipe.transform(selectedTransaction.createdAt, 'medium') }}
-            </div>
-          </div>
-        </div>
-
-        <div class="timeline-empty"
-          *ngIf="!selectedTransaction.createdAt && !selectedTransaction.acceptedAt && !selectedTransaction.rejectedAt">
-          <em>No history available for this transaction.</em>
-        </div>
-      </div>
-    </div>
-
-    <!-- Filter Tab Content (visible only when selectedTransaction is null) -->
-    <div *ngIf="!selectedTransaction && sidebarActiveTab === 'filter'" class="sidebar-content filter-content">
-      <h4>Filter Transactions</h4>
-
-      <div class="filter-section">
-        <label for="filterReferenceNo">Reference No:</label>
-        <input type="text" id="filterReferenceNo" [(ngModel)]="currentFilterOptions.referenceNo"
-          placeholder="e.g., T101">
-      </div>
-
-      <div class="filter-section">
-        <label for="filterTransferFrom">Transfer From:</label>
-        <input type="text" id="filterTransferFrom" [(ngModel)]="currentFilterOptions.transferFrom"
-          placeholder="e.g., ACC001">
-      </div>
-
-      <div class="filter-section">
-        <label for="filterTransferTo">Transfer To:</label>
-        <input type="text" id="filterTransferTo" [(ngModel)]="currentFilterOptions.transferTo"
-          placeholder="e.g., ACC005">
-      </div>
-
-      <div class="filter-section status-filter">
-        <h5>Status:</h5>
-        <label>
-          <input type="checkbox" [(ngModel)]="currentFilterOptions.statuses.PENDING"> Processing (Pending)
-        </label>
-        <label>
-          <input type="checkbox" [(ngModel)]="currentFilterOptions.statuses.ACCEPTED"> Authorized (Accepted)
-        </label>
-        <label>
-          <input type="checkbox" [(ngModel)]="currentFilterOptions.statuses.REJECTED"> Unauthorized (Rejected)
-        </label>
-        <label>
-          <input type="checkbox" [(ngModel)]="currentFilterOptions.statuses.DELETED"> Cancelled (Deleted)
-        </label>
-      </div>
-
-      <div class="filter-section date-filter">
-        <h5>Date:</h5>
-        <div class="date-range-buttons">
-          <button [class.active]="currentFilterOptions.dateRange === 'thisWeek'"
-            (click)="onDateRangeChange('thisWeek')">This Week</button>
-          <button [class.active]="currentFilterOptions.dateRange === 'lastMonth'"
-            (click)="onDateRangeChange('lastMonth')">Last Month</button>
-          <button [class.active]="currentFilterOptions.dateRange === 'all'" (click)="onDateRangeChange('all')">All
-            Time</button>
-          <button [class.active]="currentFilterOptions.dateRange === 'custom'"
-            (click)="onDateRangeChange('custom')">Custom</button>
-        </div>
-        <div class="custom-date-inputs" *ngIf="currentFilterOptions.dateRange === 'custom'">
-          <label for="filterFromDate">From:</label>
-          <input type="date" id="filterFromDate" [(ngModel)]="currentFilterOptions.fromDate">
-          <label for="filterToDate">To:</label>
-          <input type="date" id="filterToDate" [(ngModel)]="currentFilterOptions.toDate">
-        </div>
-      </div>
-
-      <div class="filter-actions">
-        <button class="apply-btn" (click)="applyFilterOptions()">Apply Filters</button>
-        <button class="clear-btn" (click)="clearFilterOptions()">Clear Filters</button>
-      </div>
-    </div>
-  </div>
-
-
-  <!-- Rejection Reason Modal -->
-  <div *ngIf="showReasonModal" class="modal-overlay">
-    <div class="modal-content">
-      <!-- NEW: Dynamic heading based on single or mass rejection -->
-      <h3>Reason for Rejection ({{ currentTransactionForReasonId ? 'ID: ' + currentTransactionForReasonId : 'Selected Transactions' }})</h3>
-      <div class="form-group">
-        <label for="rejectionReason">Reason:</label>
-        <textarea id="rejectionReason" name="rejectionReason" rows="4" cols="50" [(ngModel)]="rejectionReasonInput"
-          required #reasonInput="ngModel"></textarea>
-        <div *ngIf="reasonInput.invalid && (reasonInput.dirty || reasonInput.touched)" class="error-message">
-          <div *ngIf="reasonInput.errors?.['required']">Rejection reason is required.</div>
-        </div>
-      </div>
-      <div class="modal-actions">
-        <button class="confirm-btn" (click)="submitRejectionReason()" [disabled]="!reasonInput.valid">Submit
-          Reason</button>
-        <button class="cancel-btn" (click)="cancelRejectionReason()">Cancel</button>
-      </div>
-    </div>
-  </div>
-
-
-  <!-- Confirmation Modal (Generic) -->
-  <div *ngIf="showConfirmModal" class="modal-overlay">
-    <div class="modal-content">
-      <h3>Confirmation</h3>
-      <p>{{ modalMessage }}</p>
-      <div class="modal-actions">
-        <button class="confirm-btn" (click)="executeModalAction()">Confirm</button>
-        <button class="cancel-btn" (click)="closeConfirmModal()">Cancel</button>
-      </div>
-    </div>
-  </div>
+  <app-confirmation-modal
+    *ngIf="showConfirmModal"
+    [message]="modalMessage"
+    (confirmed)="executeModalAction()"
+    (cancelled)="closeConfirmModal()"
+  ></app-confirmation-modal>
 </main>

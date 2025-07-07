@@ -1,0 +1,62 @@
+<div class="sidebar-content filter-content">
+  <h4>Filter Transactions</h4>
+
+  <div class="filter-section">
+    <label for="filterReferenceNo">Reference No:</label>
+    <input type="text" id="filterReferenceNo" [(ngModel)]="currentFilterOptions.referenceNo"
+      placeholder="e.g., T101">
+  </div>
+
+  <div class="filter-section">
+    <label for="filterTransferFrom">Transfer From:</label>
+    <input type="text" id="filterTransferFrom" [(ngModel)]="currentFilterOptions.transferFrom"
+      placeholder="e.g., ACC001">
+  </div>
+
+  <div class="filter-section">
+    <label for="filterTransferTo">Transfer To:</label>
+    <input type="text" id="filterTransferTo" [(ngModel)]="currentFilterOptions.transferTo"
+      placeholder="e.g., ACC005">
+  </div>
+
+  <div class="filter-section status-filter">
+    <h5>Status:</h5>
+    <label>
+      <input type="checkbox" [(ngModel)]="currentFilterOptions.statuses.PENDING"> Processing (Pending)
+    </label>
+    <label>
+      <input type="checkbox" [(ngModel)]="currentFilterOptions.statuses.ACCEPTED"> Authorized (Accepted)
+    </label>
+    <label>
+      <input type="checkbox" [(ngModel)]="currentFilterOptions.statuses.REJECTED"> Unauthorized (Rejected)
+    </label>
+    <label>
+      <input type="checkbox" [(ngModel)]="currentFilterOptions.statuses.DELETED"> Cancelled (Deleted)
+    </label>
+  </div>
+
+  <div class="filter-section date-filter">
+    <h5>Date:</h5>
+    <div class="date-range-buttons">
+      <button [class.active]="currentFilterOptions.dateRange === 'thisWeek'"
+        (click)="onDateRangeChange('thisWeek')">This Week</button>
+      <button [class.active]="currentFilterOptions.dateRange === 'lastMonth'"
+        (click)="onDateRangeChange('lastMonth')">Last Month</button>
+      <button [class.active]="currentFilterOptions.dateRange === 'all'" (click)="onDateRangeChange('all')">All
+        Time</button>
+      <button [class.active]="currentFilterOptions.dateRange === 'custom'"
+        (click)="onDateRangeChange('custom')">Custom</button>
+    </div>
+    <div class="custom-date-inputs" *ngIf="currentFilterOptions.dateRange === 'custom'">
+      <label for="filterFromDate">From:</label>
+      <input type="date" id="filterFromDate" [(ngModel)]="currentFilterOptions.fromDate">
+      <label for="filterToDate">To:</label>
+      <input type="date" id="filterToDate" [(ngModel)]="currentFilterOptions.toDate">
+    </div>
+  </div>
+
+  <div class="filter-actions">
+    <button class="apply-btn" (click)="onApplyFilters()">Apply Filters</button>
+    <button class="clear-btn" (click)="onClearFilters()">Clear Filters</button>
+  </div>
+</div>

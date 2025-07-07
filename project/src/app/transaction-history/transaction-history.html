@@ -1,0 +1,51 @@
+<!-- src/app/home/components/sidebar/components/transaction-history/transaction-history.html -->
+<div class="tab-pane timeline">
+  <h4>History for Transaction: {{ transaction.id }}</h4>
+
+  <div class="timeline-event" *ngIf="transaction.rejectedAt">
+    <div class="timeline-icon timeline-rejected">
+      <span class="material-icons">cancel</span>
+    </div>
+    <div class="timeline-content">
+      <div class="timeline-title">Transaction Rejected</div>
+      <div class="timeline-detail">
+        By {{ transaction.rejectedBy || 'Unknown' }} on
+        {{ transaction.rejectedAt | date:'medium' }}
+      </div>
+      <div class="timeline-reason" *ngIf="transaction.rejectionReason">
+        <b>Reason for Rejection:</b> <br>{{ transaction.rejectionReason }}
+      </div>
+    </div>
+  </div>
+
+  <div class="timeline-event" *ngIf="transaction.acceptedAt">
+    <div class="timeline-icon timeline-accepted">
+      <span class="material-icons">check_circle</span>
+    </div>
+    <div class="timeline-content">
+      <div class="timeline-title">Transaction Approved</div>
+      <div class="timeline-detail">
+        By {{ transaction.acceptedBy || 'Unknown' }} on
+        {{ transaction.acceptedAt | date:'medium' }}
+      </div>
+    </div>
+  </div>
+
+  <div class="timeline-event" *ngIf="transaction.createdAt">
+    <div class="timeline-icon">
+      <span class="material-icons">add_circle_outline</span>
+    </div>
+    <div class="timeline-content">
+      <div class="timeline-title">Transaction Created</div>
+      <div class="timeline-detail">
+        By {{ transaction.createdBy || 'Unknown' }} on
+        {{ transaction.createdAt | date:'medium' }}
+      </div>
+    </div>
+  </div>
+
+  <div class="timeline-empty"
+    *ngIf="!transaction.createdAt && !transaction.acceptedAt && !transaction.rejectedAt">
+    <em>No history available for this transaction.</em>
+  </div>
+</div>

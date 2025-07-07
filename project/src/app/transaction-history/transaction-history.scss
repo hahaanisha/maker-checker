@@ -1,0 +1,98 @@
+/* src/app/home/components/sidebar/components/transaction-history/transaction-history.scss */
+.tab-pane {
+  h4 {
+    margin-top: 0;
+    margin-bottom: 1rem;
+    color: #333;
+    font-size: 1.2rem;
+    border-bottom: 1px dashed #eee;
+    padding-bottom: 0.5rem;
+  }
+}
+
+/* Timeline Styles */
+.timeline {
+  position: relative;
+  padding-left: 25px;
+}
+
+.timeline::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 10px;
+  width: 2px;
+  height: 100%;
+  background-color: #e0e0e0;
+}
+
+.timeline-event {
+  position: relative;
+  margin-bottom: 20px;
+  padding-left: 25px;
+}
+
+.timeline-icon {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 20px;
+  height: 20px;
+  background-color: #007bff;
+  border-radius: 50%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  color: white;
+  font-size: 14px;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+}
+
+.timeline-icon.material-icons {
+    font-size: 18px;
+}
+
+.timeline-icon.timeline-accepted {
+  background-color: #28a745;
+}
+
+.timeline-icon.timeline-rejected {
+  background-color: #dc3545;
+}
+
+.timeline-content {
+  background-color: #f8f9fa;
+  padding: 15px;
+  border-radius: 8px;
+  box-shadow: 0 1px 5px rgba(0,0,0,0.1);
+  border: 1px solid #eee;
+}
+
+.timeline-title {
+  font-weight: bold;
+  color: #333;
+  margin-bottom: 5px;
+  font-size: 1.1rem;
+}
+
+.timeline-detail {
+  font-size: 0.9rem;
+  color: #666;
+  margin-bottom: 5px;
+}
+
+.timeline-reason {
+  font-size: 0.85rem;
+  color: #888;
+  font-style: italic;
+  padding-top: 5px;
+  border-top: 1px dashed #eee;
+  margin-top: 5px;
+}
+
+.timeline-empty {
+  text-align: center;
+  padding: 20px;
+  color: #999;
+  font-style: italic;
+}

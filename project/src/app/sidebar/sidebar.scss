@@ -1,0 +1,120 @@
+/* src/app/home/components/sidebar/sidebar.scss */
+/* Sidebar Styles */
+.sidebar-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.4);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 999;
+  visibility: hidden;
+  opacity: 0;
+  transition: visibility 0.3s ease-in-out, opacity 0.3s ease-in-out;
+}
+
+.sidebar-overlay.open {
+  visibility: visible;
+  opacity: 1;
+}
+
+.sidebar {
+  position: fixed;
+  top: 0;
+  right: -400px;
+  width: 400px;
+  height: 100%;
+  background-color: #fff;
+  box-shadow: -4px 0 10px rgba(0, 0, 0, 0.15);
+  z-index: 1000;
+  transition: right 0.3s ease-in-out;
+  display: flex;
+  flex-direction: column;
+}
+
+.sidebar.open {
+  right: 0;
+}
+
+.sidebar-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem 1.5rem;
+  border-bottom: 1px solid #eee;
+  background-color: #f8f9fa;
+}
+
+.sidebar-header h3 {
+  margin: 0;
+  font-size: 1.5rem;
+  color: #333;
+}
+
+.close-sidebar-btn {
+  background: none;
+  border: none;
+  font-size: 1.5rem;
+  cursor: pointer;
+  color: #555;
+  transition: color 0.2s;
+}
+
+.close-sidebar-btn:hover {
+  color: #000;
+}
+
+.sidebar-tabs {
+  display: flex;
+  border-bottom: 1px solid #eee;
+  background-color: #f8f9fa;
+}
+
+.sidebar-tabs button {
+  flex: 1;
+  padding: 0.8rem 0;
+  border: none;
+  background: none;
+  cursor: pointer;
+  font-size: 1rem;
+  color: #555;
+  transition: background-color 0.2s, color 0.2s;
+  text-align: center;
+  font-weight: 500;
+}
+
+.sidebar-tabs button:hover:not(.active) {
+  background-color: #e9ecef;
+}
+
+.sidebar-tabs button.active {
+  color: #007bff;
+  border-bottom: 2px solid #007bff;
+  font-weight: 600;
+}
+
+.sidebar-content {
+  flex-grow: 1;
+  padding: 1.5rem;
+  overflow-y: auto;
+}
+
+/* Responsive adjustments for sidebar */
+@media (max-width: 768px) {
+  .sidebar {
+    width: 90%;
+    right: -90%;
+  }
+}
+
+.sidebar-status{
+  margin-bottom: 0;
+  margin-left: 1rem;
+}
+
+.sidebar-status span{
+font-size: 20px;
+}

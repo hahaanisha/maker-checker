@@ -1,0 +1,322 @@
+/* src/app/home/components/transaction-table/transaction-table.scss */
+/* AG Grid Theme Customization based on traditional table styles */
+.table-container {
+  background-color: #fff;
+  // padding: 2rem;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  overflow-x: auto;
+  border: 1px solid #ddd;
+  margin-top: 2rem;
+  height: 400px;
+  display: flex;
+  flex-direction: column;
+}
+
+.table-container h2 {
+  text-align: center;
+  margin-bottom: 1.5rem;
+  color: #333;
+  font-size: 2rem;
+}
+
+.ag-theme-alpine {
+  flex-grow: 1;
+  width: 100%;
+  height: 100%;
+
+  /* Override AG-Grid CSS variables for custom look */
+  --ag-row-height: 48px;
+  --ag-header-height: 48px;
+  --ag-grid-size: 100%;
+  --ag-font-size: 14px;
+  --ag-font-family: 'Inter', sans-serif;
+  --ag-border-color: #e0e0e0;
+  --ag-odd-row-background-color: #f6f6f6;
+
+  /* Header cell styles (similar to 'th' in snippet) */
+  .ag-header-cell {
+    background-color: #e9ecef;
+    font-weight: bold;
+    color: #495057;
+    text-transform: uppercase;
+    font-size: 0.9rem;
+    border-right: 1px solid var(--ag-border-color);
+    border-bottom: 1px solid var(--ag-border-color);
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    padding: 0.8rem;
+  }
+
+  /* Specific header cell label alignment for centering if desired (can be adjusted per column) */
+  .ag-header-cell-label {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  /* Data cell styles (similar to 'td' in snippet) */
+  .ag-cell {
+    border: 1px solid var(--ag-border-color);
+    padding: 0.8rem;
+    padding-top: 12px;
+    text-align: left;
+    white-space: normal;
+    display: flex;
+    align-items: flex-start;
+  }
+
+  /* Row hover effect (similar to tbody tr:hover) */
+  .ag-row:hover {
+    background-color: #e2f4ff !important;
+  }
+
+  /* Odd row background (equivalent to tbody tr:nth-child(even) due to AG Grid's row rendering) */
+  .ag-row-odd {
+    background-color: var(--ag-odd-row-background-color);
+  }
+
+  /* Specific styles for the checkbox selection cell */
+  .ag-cell-wrapper.ag-row-level-0.ag-checkbox-cell {
+    display: flex;
+    align-items: flex-start;
+    justify-content: center;
+    padding-top: 12px;
+  }
+  .ag-selection-checkbox {
+    transform: scale(1.1);
+  }
+}
+
+/* ENSURING AG GRID'S DEFAULT PAGINATION PANEL IS HIDDEN */
+.ag-theme-alpine .ag-paging-panel {
+  display: none !important;
+}
+
+/* Style for the "No transactions" message when table is empty */
+.no-transactions-message {
+  text-align: center;
+  font-style: italic;
+  color: #666;
+  padding: 1rem;
+}
+
+/* Custom Pagination Controls */
+.pagination-controls {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 1.5rem;
+  padding: 0.5rem;
+  background-color: #f0f2f5;
+  border-radius: 8px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+}
+
+.pagination-controls button {
+  padding: 0.3rem 0.6rem;
+  border: 1px solid #007bff;
+  border-radius: 5px;
+  background-color: #ffffff;
+  color: #007bff;
+  cursor: pointer;
+  font-size: 0.9rem;
+  transition: background-color 0.3s, border-color 0.3s, opacity 0.3s, transform 0.2s;
+}
+
+.pagination-controls button:first-child,
+.pagination-controls button:last-child {
+  background-color: #007bff;
+  color: white;
+}
+
+.pagination-controls button:hover:not(:disabled) {
+  background-color: #e2f4ff;
+  border-color: #0056b3;
+  transform: translateY(-1px);
+}
+
+.pagination-controls button:first-child:hover:not(:disabled),
+.pagination-controls button:last-child:hover:not(:disabled) {
+    background-color: #0056b3;
+    transform: translateY(-1px);
+}
+
+.pagination-controls button:disabled {
+  background-color: #e0e0e0;
+  border-color: #e0e0e0;
+  color: #a0a0a0;
+  cursor: not-allowed;
+  opacity: 0.7;
+}
+
+.pagination-controls button.active {
+  background-color: #007bff;
+  border-color: #007bff;
+  color: white;
+  font-weight: bold;
+  transform: translateY(0);
+  box-shadow: 0 2px 5px rgba(0, 123, 255, 0.4);
+}
+
+.pagination-controls button.active:hover {
+  background-color: #0056b3;
+}
+
+.pagination-controls span {
+  font-size: 1rem;
+  font-weight: 500;
+  color: #333;
+}
+
+.pagination-controls .ellipsis {
+  font-size: 1rem;
+  font-weight: 500;
+  color: #666;
+  padding: 0.3rem 0.6rem;
+}
+
+/* Action buttons styling (applies to buttons within ActionsCellRendererComponent) */
+.action-buttons {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 5px;
+  height: 100%;
+  padding: 0 5px;
+}
+
+.action-buttons button {
+  padding: 0.5rem 0.8rem;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.8em;
+  transition: background-color 0.3s ease, transform 0.2s;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  white-space: nowrap;
+}
+
+.action-buttons button:disabled {
+  background-color: #cccccc;
+  cursor: not-allowed;
+  opacity: 0.8;
+}
+
+.action-buttons .edit-btn {
+  background-color: #ffc107;
+  color: #333;
+}
+
+.action-buttons .edit-btn:hover {
+  background-color: #e0a800;
+  transform: translateY(-1px);
+}
+
+.action-buttons .delete-btn {
+  background-color: #dc3545;
+  color: white;
+}
+
+.action-buttons .delete-btn:hover {
+  background-color: #c82333;
+  transform: translateY(-1px);
+}
+
+.action-buttons .accept-btn {
+  background-color: #28a745;
+  color: white;
+}
+
+.action-buttons .accept-btn:hover {
+  background-color: #218838;
+  transform: translateY(-1px);
+}
+
+.action-buttons .reject-btn {
+  background-color: #6c757d;
+  color: white;
+}
+
+.action-buttons .reject-btn:hover {
+  background-color: #5a6268;
+  transform: translateY(-1px);
+}
+
+
+
+.selected-rows-info {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.8rem 1.5rem;
+  margin-top: 1.5rem;
+  background-color: #e9ecef;
+  border-radius: 8px;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+  font-weight: 500;
+  color: #333;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.selected-rows-info span {
+  white-space: nowrap;
+}
+
+.mass-action-buttons {
+  display: flex;
+  gap: 0.8rem;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+.mass-action-buttons button {
+  padding: 0.6rem 1.2rem;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  font-weight: 600;
+  transition: background-color 0.3s ease, transform 0.2s;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.mass-action-buttons button:disabled {
+  background-color: #cccccc;
+  cursor: not-allowed;
+  opacity: 0.8;
+}
+
+.mass-action-buttons .mass-delete-btn {
+  background-color: #dc3545;
+  color: white;
+}
+
+.mass-action-buttons .mass-delete-btn:hover:not(:disabled) {
+  background-color: #c82333;
+  transform: translateY(-1px);
+}
+
+.mass-action-buttons .mass-accept-btn {
+  background-color: #28a745;
+  color: white;
+}
+
+.mass-action-buttons .mass-accept-btn:hover:not(:disabled) {
+  background-color: #218838;
+  transform: translateY(-1px);
+}
+
+.mass-action-buttons .mass-reject-btn {
+  background-color: #6c757d;
+  color: white;
+}
+
+.mass-action-buttons .mass-reject-btn:hover:not(:disabled) {
+  background-color: #5a6268;
+  transform: translateY(-1px);
+}

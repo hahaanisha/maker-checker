@@ -1,0 +1,23 @@
+/* src/app/home/components/sidebar/components/transaction-details/transaction-details.scss */
+.tab-pane {
+  h4 {
+    margin-top: 0;
+    margin-bottom: 1rem;
+    color: #333;
+    font-size: 1.2rem;
+    border-bottom: 1px dashed #eee;
+    padding-bottom: 0.5rem;
+  }
+
+  p {
+    margin-bottom: 0.7rem;
+    color: #444;
+    line-height: 1.4;
+    font-size: 0.95rem;
+
+    strong {
+      color: #222;
+      font-weight: 600;
+    }
+  }
+}

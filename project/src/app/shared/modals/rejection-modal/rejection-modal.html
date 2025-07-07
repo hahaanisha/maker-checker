@@ -1,0 +1,21 @@
+
+<div class="modal-overlay">
+  <div class="modal-content">
+    <h3>Reason for Rejection ({{ transactionId ? 'ID: ' + transactionId : 'Selected Transactions' }})</h3>
+    
+    <form #rejectionForm="ngForm" (ngSubmit)="onSubmit()">
+      <div class="form-group">
+        <label for="rejectionReason">Reason:</label>
+        <textarea id="rejectionReason" name="rejectionReason" rows="4" cols="50" [(ngModel)]="rejectionReason"
+          required #reasonInput="ngModel"></textarea>
+        <div *ngIf="reasonInput.invalid && (reasonInput.dirty || reasonInput.touched)" class="error-message">
+          <div *ngIf="reasonInput.errors?.['required']">Rejection reason is required.</div>
+        </div>
+      </div>
+      <div class="modal-actions">
+        <button type="submit" class="confirm-btn" [disabled]="!rejectionForm.valid">Submit Reason</button>
+        <button type="button" class="cancel-btn" (click)="onCancel()">Cancel</button>
+      </div>
+    </form>
+  </div>
+</div>
