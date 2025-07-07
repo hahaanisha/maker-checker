@@ -8,5 +8,11 @@
     "role": "checker",
     "roleId": "checker1",
     "password": "checkerpwd"
+  },
+
+   {
+    "role": "admin",
+    "roleId": "admin1",
+    "password": "admin"
   }
 ]
