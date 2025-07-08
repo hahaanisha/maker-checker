@@ -1,9 +1,8 @@
-
 import { Component, inject, OnInit, ChangeDetectorRef } from '@angular/core';
 import { CommonModule, DatePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 
-import { catchError, of, tap, forkJoin, Observable, finalize, concatMap } from 'rxjs';
+import { catchError, of, tap, forkJoin, Observable, finalize } from 'rxjs';
 
 import { GridApi } from 'ag-grid-community';
 
@@ -15,9 +14,7 @@ import { SidebarComponent } from '../sidebar/sidebar';
 import { ConfirmationModalComponent } from '../shared/modals/confirmation-modal/confirmation';
 import { RejectionReasonModalComponent } from '../shared/modals/rejection-modal/rejection-modal';
 
-
-import { TransactionService } from '../services/service';
-import { HttpClient } from '@angular/common/http';
+import { TransactionService } from '../services/service'; // <--- CRITICAL FIX: Corrected import path
 
 @Component({
   selector: 'app-home',
@@ -35,20 +32,17 @@ import { HttpClient } from '@angular/common/http';
   templateUrl: './home.html',
   styleUrls: ['./home.scss']
 })
-
 export class HomeComponent implements OnInit {
-  http = inject(HttpClient);
   datePipe = inject(DatePipe);
   changeDetectorRef = inject(ChangeDetectorRef);
-  
+
   private transactionService = inject(TransactionService);
 
   role: string | null = null;
-  
+
   showAddForm = false;
   showEditForm = false;
   editingTransaction: Transaction | null = null;
-  nextNewTransactionId: string = '';
   showConfirmModal = false;
   modalMessage = '';
   modalAction: (() => void) | null = null;
@@ -87,22 +81,13 @@ export class HomeComponent implements OnInit {
   gridApi!: GridApi;
 
   selectedRowCount: number = 0;
-  showMassActions: boolean = false;
+  showMassActions: boolean = false; // Controls the mass action bar visibility
 
-
-  constructor() {}
+  constructor() { }
 
   ngOnInit(): void {
     this.role = localStorage.getItem('role');
     this.loadTransactions();
-  }
-
-  private generateNextTransactionId(): string {
-    const maxIdNum = this.transactionList.reduce((max, txn) => {
-      const idNum = parseInt(txn.id.replace('T', ''), 10);
-      return isNaN(idNum) ? max : Math.max(max, idNum);
-    }, 0);
-    return `T${maxIdNum + 1}`;
   }
 
   private loadTransactions(): void {
@@ -112,9 +97,9 @@ export class HomeComponent implements OnInit {
           this.transactionList = data;
           this.sortTransactionsByCreatedAt();
           this.updateGridDataAndFilters();
-          this.nextNewTransactionId = this.generateNextTransactionId();
         }),
         catchError(err => {
+          console.error('Error loading transactions:', err);
           this.agGridDisplayData = [];
           return of([]);
         })
@@ -136,7 +121,7 @@ export class HomeComponent implements OnInit {
     if (this.searchTerm) {
       const lowerCaseSearchTerm = this.searchTerm.toLowerCase();
       filteredData = filteredData.filter(txn =>
-        txn.id.toLowerCase().includes(lowerCaseSearchTerm) ||
+        txn.id?.toLowerCase().includes(lowerCaseSearchTerm) ||
         txn.fromAccount.toLowerCase().includes(lowerCaseSearchTerm) ||
         txn.toAccount.toLowerCase().includes(lowerCaseSearchTerm) ||
         txn.description.toLowerCase().includes(lowerCaseSearchTerm) ||
@@ -148,7 +133,7 @@ export class HomeComponent implements OnInit {
     const selectedFilterStatuses = Object.keys(this.filterOptions.statuses).filter(key => this.filterOptions.statuses[key as keyof typeof this.filterOptions.statuses]);
     if (selectedFilterStatuses.length > 0) {
       if (!selectedFilterStatuses.includes(this.activeTab) || selectedFilterStatuses.length > 1) {
-         filteredData = filteredData.filter(txn => selectedFilterStatuses.includes(txn.status));
+        filteredData = filteredData.filter(txn => selectedFilterStatuses.includes(txn.status));
       }
     }
 
@@ -160,7 +145,8 @@ export class HomeComponent implements OnInit {
       today.setHours(0, 0, 0, 0);
 
       if (this.filterOptions.dateRange === 'thisWeek') {
-        const firstDayOfWeek = new Date(today.setDate(today.getDate() - today.getDay()));
+        const firstDayOfWeek = new Date(today);
+        firstDayOfWeek.setDate(today.getDate() - today.getDay());
         fromDate = firstDayOfWeek;
         toDate = new Date();
       } else if (this.filterOptions.dateRange === 'lastMonth') {
@@ -185,7 +171,7 @@ export class HomeComponent implements OnInit {
     this.agGridDisplayData = [...filteredData];
 
     if (this.gridApi) {
-      this.gridApi.setGridOption('rowData', this.agGridDisplayData); 
+      this.gridApi.setGridOption('rowData', this.agGridDisplayData);
       this.gridApi.paginationGoToFirstPage();
       this.changeDetectorRef.detectChanges();
     }
@@ -202,10 +188,8 @@ export class HomeComponent implements OnInit {
   }
 
   toggleAddForm(): void {
-    this.closeAllModalsAndSidebars(); // Close everything first
-    this.showAddForm = !this.showAddForm; // Then toggle add form
-    this.nextNewTransactionId = this.generateNextTransactionId();
-    console.log('HomeComponent: toggleAddForm. showAddForm:', this.showAddForm);
+    this.closeAllModalsAndSidebars();
+    this.showAddForm = !this.showAddForm;
     this.changeDetectorRef.detectChanges();
   }
 
@@ -215,91 +199,49 @@ export class HomeComponent implements OnInit {
   }
 
   onEditClick(transaction: Transaction): void {
-    console.log('HomeComponent: onEditClick called for transaction', transaction.id);
-    this.closeAllModalsAndSidebars(); // Ensure all other modals/sidebars/forms are closed
-    this.editingTransaction = { ...transaction }; // Set the transaction to be edited
-    this.showEditForm = true; // Show the edit form
-    console.log('HomeComponent: onEditClick. showEditForm:', this.showEditForm, 'editingTransaction:', this.editingTransaction?.id);
-    this.changeDetectorRef.detectChanges(); // Force change detection
+    this.closeAllModalsAndSidebars();
+    this.editingTransaction = { ...transaction };
+    this.showEditForm = true;
+    this.changeDetectorRef.detectChanges();
   }
 
   onTransactionAdded(newTxn: Transaction): void {
-    this.transactionList.unshift(newTxn);
-    this.sortTransactionsByCreatedAt();
-    this.updateGridDataAndFilters();
+    this.loadTransactions();
+    this.selectTab('PENDING');
+    this.showAddForm = false;
+    this.changeDetectorRef.detectChanges();
+  }
 
-    this.transactionService.addTransaction(newTxn)
+  onTransactionUpdated(updatedTxn: Transaction): void {
+    if (!updatedTxn._id) {
+      console.error('HomeComponent: Cannot update transaction, _id is missing.', updatedTxn);
+      return;
+    }
+    this.transactionService.updateTransaction(updatedTxn)
       .pipe(
         tap((responseTxn) => {
-          const index = this.transactionList.findIndex(t => t.id === newTxn.id);
-          if (index !== -1) {
-              this.transactionList[index] = responseTxn;
+          this.loadTransactions();
+          if (this.selectedTransaction?._id === responseTxn._id) {
+            this.selectedTransaction = responseTxn;
           }
-          this.selectTab('PENDING');
         }),
         catchError(err => {
-          const index = this.transactionList.findIndex(t => t.id === newTxn.id);
-          if (index !== -1) {
-              this.transactionList.splice(index, 1);
-              this.updateGridDataAndFilters();
-          }
+          console.error('Error updating transaction:', err);
+          this.loadTransactions();
           return of(null);
         })
       )
       .subscribe(() => {
-        this.showAddForm = false;
-        console.log('HomeComponent: Transaction added. showAddForm:', this.showAddForm);
+        this.showEditForm = false;
+        this.editingTransaction = null;
         this.changeDetectorRef.detectChanges();
       });
-  }
-
-  onTransactionUpdated(updatedTxn: Transaction): void {
-    const index = this.transactionList.findIndex(t => t.id === updatedTxn.id);
-    if (index !== -1) {
-      const originalTxn = { ...this.transactionList[index] };
-
-      this.transactionList[index] = updatedTxn;
-      this.sortTransactionsByCreatedAt();
-      this.updateGridDataAndFilters();
-
-      this.transactionService.updateTransaction(updatedTxn)
-        .pipe(
-          tap((responseTxn) => {
-            const updatedIndex = this.transactionList.findIndex(t => t.id === responseTxn.id);
-            if(updatedIndex !== -1) {
-                this.transactionList[updatedIndex] = responseTxn;
-            }
-            if (this.selectedTransaction?.id === responseTxn.id) {
-              this.selectedTransaction = responseTxn;
-            }
-            this.sortTransactionsByCreatedAt();
-            this.updateGridDataAndFilters();
-          }),
-          catchError(err => {
-            this.transactionList[index] = originalTxn;
-            this.loadTransactions();
-            return of(null);
-          })
-        )
-        .subscribe(() => {
-          this.showEditForm = false;
-          this.editingTransaction = null;
-          console.log('HomeComponent: Transaction updated. showEditForm:', this.showEditForm);
-          this.changeDetectorRef.detectChanges();
-        });
-    } else {
-      this.showEditForm = false;
-      this.editingTransaction = null;
-      console.log('HomeComponent: Transaction not found for update. showEditForm:', this.showEditForm);
-      this.changeDetectorRef.detectChanges();
-    }
   }
 
   onTransactionFormCancel(): void {
     this.showAddForm = false;
     this.showEditForm = false;
     this.editingTransaction = null;
-    console.log('HomeComponent: Form cancelled. showAddForm:', this.showAddForm, 'showEditForm:', this.showEditForm);
     this.changeDetectorRef.detectChanges();
   }
 
@@ -310,8 +252,7 @@ export class HomeComponent implements OnInit {
 
   onRowSelected(event: { selectedCount: number; selectedRows: Transaction[] }): void {
     this.selectedRowCount = event.selectedCount;
-    this.showMassActions = event.selectedCount > 0;
-    console.log('HomeComponent: Row selected. selectedRowCount:', this.selectedRowCount, 'showMassActions:', this.showMassActions);
+    this.showMassActions = event.selectedCount > 1; // Show mass actions only if MORE THAN ONE row is selected
     this.changeDetectorRef.detectChanges();
   }
 
@@ -321,9 +262,9 @@ export class HomeComponent implements OnInit {
 
   confirmMassAction(actionType: 'delete' | 'accept' | 'reject', transactionIds?: string[]): void {
     const selectedTransactions = transactionIds ?
-                                 this.transactionList.filter(txn => transactionIds.includes(txn.id)) :
-                                 this.gridApi.getSelectedRows();
-                                 
+      this.transactionList.filter(txn => transactionIds.includes(txn._id as string)) :
+      this.gridApi.getSelectedRows();
+
     if (selectedTransactions.length === 0) {
       return;
     }
@@ -331,7 +272,7 @@ export class HomeComponent implements OnInit {
     this.closeAllModalsAndSidebars();
     this.massActionType = actionType;
 
-    const idsToActOn = selectedTransactions.map(txn => txn.id);
+    const idsToActOn = selectedTransactions.map(txn => txn._id as string);
     const currentSelectedCount = selectedTransactions.length;
     const idList = idsToActOn.slice(0, 3).join(', ') + (idsToActOn.length > 3 ? '...' : '');
 
@@ -348,30 +289,28 @@ export class HomeComponent implements OnInit {
       case 'reject':
         this.transactionsToRejectIds = idsToActOn;
         this.promptForRejectionReason(idsToActOn);
-        return;
+        return; 
     }
 
     this.modalMessage = confirmationMessage;
     this.showConfirmModal = true;
-    console.log('HomeComponent: confirmMassAction. showConfirmModal:', this.showConfirmModal, 'actionType:', actionType);
     this.changeDetectorRef.detectChanges();
   }
 
   executeModalAction(): void {
     if (this.modalAction) {
       this.modalAction();
+      this.closeConfirmModal(); 
     }
-    console.log('HomeComponent: executeModalAction');
   }
-
   promptForRejectionReason(transactionIds: string[]): void {
+    this.closeConfirmModal(); 
     this.closeAllModalsAndSidebars();
-    this.currentTransactionForReasonId = transactionIds.length === 1 ? transactionIds[0] : null; 
+    this.currentTransactionForReasonId = transactionIds.length === 1 ? transactionIds[0] : null;
     this.transactionsToRejectIds = transactionIds;
     this.massActionType = 'reject';
     this.rejectionReasonInput = '';
     this.showReasonModal = true;
-    console.log('HomeComponent: promptForRejectionReason. showReasonModal:', this.showReasonModal);
     this.changeDetectorRef.detectChanges();
   }
 
@@ -385,12 +324,11 @@ export class HomeComponent implements OnInit {
         this.callUpdateTransactionStatus([this.currentTransactionForReasonId], 'REJECTED', reason);
       }
     }
-    console.log('HomeComponent: Rejection reason submitted.');
+    this.cancelRejectionReason();
   }
 
   onRejectionReasonCancel(): void {
     this.cancelRejectionReason();
-    console.log('HomeComponent: Rejection reason cancelled.');
   }
 
   callUpdateTransactionStatus(
@@ -399,12 +337,12 @@ export class HomeComponent implements OnInit {
     rejectionReason?: string
   ): void {
     const byUser = this.role || 'Unknown Checker';
-    
-    const updateObservables: Observable<Transaction>[] = ids.map(id => {
+
+    const updateObservables: Observable<Transaction>[] = ids.map(_id => {
       if (newStatus === 'DELETED') {
-        return this.transactionService.deleteTransaction(id, byUser);
+        return this.transactionService.deleteTransaction(_id, byUser);
       } else {
-        return this.transactionService.updateTransactionStatus(id, newStatus, rejectionReason, byUser);
+        return this.transactionService.updateTransactionStatus(_id, newStatus, rejectionReason, byUser);
       }
     });
 
@@ -412,22 +350,22 @@ export class HomeComponent implements OnInit {
       .pipe(
         tap(() => {
           this.loadTransactions();
-          this.closeConfirmModal();
-          this.cancelRejectionReason();
         }),
         finalize(() => {
           this.gridApi?.deselectAll();
           this.selectedRowCount = 0;
           this.showMassActions = false;
-          console.log('HomeComponent: Mass action finalized. selectedRowCount:', this.selectedRowCount, 'showMassActions:', this.showMassActions);
           this.changeDetectorRef.detectChanges();
         }),
         catchError(err => {
+          console.error('Error performing mass action:', err);
           this.loadTransactions();
           return of(null);
         })
       )
-      .subscribe();
+      .subscribe(() => {
+        this.closeConfirmModal(); // Ensure the modal is closed after the action is completed
+      });
   }
 
   openSidebar(txn?: Transaction): void {
@@ -436,31 +374,26 @@ export class HomeComponent implements OnInit {
     this.selectedTransaction = txn || null;
     this.sidebarActiveTab = txn ? 'overview' : 'filter';
     this.currentFilterOptions = { ...this.filterOptions };
-    console.log('HomeComponent: openSidebar. showSidebar:', this.showSidebar);
     this.changeDetectorRef.detectChanges();
   }
 
   onSidebarClose(): void {
     this.closeSidebar();
-    console.log('HomeComponent: Sidebar closed via event.');
   }
 
   onSidebarTabChange(tab: 'overview' | 'history' | 'filter'): void {
     this.sidebarActiveTab = tab;
-    console.log('HomeComponent: Sidebar tab changed to:', tab);
   }
 
   onFilterOptionsApplied(filters: FilterOptions): void {
     this.filterOptions = { ...filters };
     this.updateGridDataAndFilters();
     this.closeSidebar();
-    console.log('HomeComponent: Filters applied.');
   }
 
   onFilterOptionsCleared(): void {
     this.clearFilterOptions();
     this.closeSidebar();
-    console.log('HomeComponent: Filters cleared.');
   }
 
   private clearFilterOptions(): void {
@@ -475,7 +408,6 @@ export class HomeComponent implements OnInit {
     };
     this.currentFilterOptions = { ...this.filterOptions };
     this.searchTerm = '';
-    console.log('HomeComponent: Filter options cleared internally.');
   }
 
   closeConfirmModal(): void {
@@ -483,7 +415,6 @@ export class HomeComponent implements OnInit {
     this.modalMessage = '';
     this.modalAction = null;
     this.massActionType = null;
-    console.log('HomeComponent: Confirm modal closed.');
     this.changeDetectorRef.detectChanges();
   }
 
@@ -493,7 +424,6 @@ export class HomeComponent implements OnInit {
     this.transactionsToRejectIds = [];
     this.rejectionReasonInput = '';
     this.massActionType = null;
-    console.log('HomeComponent: Rejection reason modal cancelled.');
     this.changeDetectorRef.detectChanges();
   }
 
@@ -502,9 +432,8 @@ export class HomeComponent implements OnInit {
     this.selectedTransaction = null;
     this.sidebarActiveTab = 'overview';
     this.gridApi?.deselectAll();
-    this.selectedRowCount = 0; // Ensure mass actions are hidden
-    this.showMassActions = false; // Ensure mass actions are hidden
-    console.log('HomeComponent: Sidebar closed. selectedRowCount:', this.selectedRowCount, 'showMassActions:', this.showMassActions);
+    this.selectedRowCount = 0;
+    this.showMassActions = false; // Reset mass actions visibility
     this.changeDetectorRef.detectChanges();
   }
 
@@ -517,9 +446,8 @@ export class HomeComponent implements OnInit {
     this.selectedTransaction = null;
     this.sidebarActiveTab = 'overview';
     this.gridApi?.deselectAll();
-    this.selectedRowCount = 0; // Explicitly reset for safety
-    this.showMassActions = false; // Explicitly reset for safety
-    console.log('HomeComponent: All modals/sidebars closed. showAddForm:', this.showAddForm, 'showEditForm:', this.showEditForm, 'showMassActions:', this.showMassActions);
+    this.selectedRowCount = 0;
+    this.showMassActions = false; // Reset mass actions visibility
     this.changeDetectorRef.detectChanges();
   }
 }

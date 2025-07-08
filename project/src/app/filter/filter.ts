@@ -2,7 +2,7 @@
 import { Component, Input, Output, EventEmitter, OnInit, inject } from '@angular/core';
 import { CommonModule, DatePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { FilterOptions } from '../interfaces/transaction.interface';
+import { FilterOptions } from '../interfaces/transaction.interface'; // Corrected import path for FilterOptions
 
 @Component({
   selector: 'app-filter',
@@ -13,16 +13,15 @@ import { FilterOptions } from '../interfaces/transaction.interface';
   styleUrls: ['./filter.scss']
 })
 export class FilterOptionsComponent implements OnInit {
-  @Input() initialFilterOptions!: FilterOptions; 
+  @Input() initialFilterOptions!: FilterOptions;
   @Output() applyFilters = new EventEmitter<FilterOptions>();
   @Output() clearFilters = new EventEmitter<void>();
 
-  currentFilterOptions!: FilterOptions; 
+  currentFilterOptions!: FilterOptions;
 
   datePipe = inject(DatePipe);
 
   ngOnInit(): void {
-    
     this.currentFilterOptions = JSON.parse(JSON.stringify(this.initialFilterOptions));
   }
 
@@ -32,7 +31,8 @@ export class FilterOptionsComponent implements OnInit {
     today.setHours(0, 0, 0, 0);
 
     if (range === 'thisWeek') {
-        const firstDayOfWeek = new Date(today.setDate(today.getDate() - today.getDay()));
+        const firstDayOfWeek = new Date(today); // Create a new Date object to avoid modifying 'today' directly
+        firstDayOfWeek.setDate(today.getDate() - today.getDay()); // Sunday as first day of week
         this.currentFilterOptions.fromDate = this.datePipe.transform(firstDayOfWeek, 'yyyy-MM-dd') || '';
         this.currentFilterOptions.toDate = this.datePipe.transform(new Date(), 'yyyy-MM-dd') || '';
     } else if (range === 'lastMonth') {
@@ -43,6 +43,8 @@ export class FilterOptionsComponent implements OnInit {
     } else if (range === 'all') {
         this.currentFilterOptions.fromDate = '';
         this.currentFilterOptions.toDate = '';
+    } else if (range === 'custom') { // Ensure custom range doesn't clear dates if already set
+        // Do nothing, allow user to manually input
     }
   }
 
@@ -51,16 +53,15 @@ export class FilterOptionsComponent implements OnInit {
   }
 
   onClearFilters(): void {
-    // Reset to default filter options
     this.currentFilterOptions = {
       referenceNo: '',
       transferFrom: '',
       transferTo: '',
       statuses: { PENDING: false, ACCEPTED: false, REJECTED: false, DELETED: false },
-      dateRange: 'custom',
+      dateRange: 'all', // Changed default to 'all' for clear filters
       fromDate: '',
       toDate: ''
     };
-    this.clearFilters.emit(); 
+    this.clearFilters.emit();
   }
 }

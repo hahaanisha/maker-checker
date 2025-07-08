@@ -7,7 +7,6 @@
     *ngIf="showAddForm || showEditForm"
     [isEditMode]="showEditForm"
     [transaction]="editingTransaction"
-    [nextTransactionId]="nextNewTransactionId"
     (transactionAdded)="onTransactionAdded($event)"
     (transactionUpdated)="onTransactionUpdated($event)"
     (cancel)="onTransactionFormCancel()"

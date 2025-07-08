@@ -14,23 +14,29 @@ export class TransactionService {
 
     constructor() { }
 
-
     getTransactions(): Observable<Transaction[]> {
-
-        return this.http.get<Transaction[]>(`${this.apiUrl}?_t=${Date.now()}`);
+        // Removed `_t=${Date.now()}` as it's typically for static file caching, not dynamic API calls
+        return this.http.get<Transaction[]>(this.apiUrl);
     }
 
     addTransaction(newTransaction: Transaction): Observable<Transaction> {
+        // When adding, the backend generates _id, id, status, createdAt
+        // The frontend should send the basic transaction data without these fields if possible
+        // However, if the interface requires them, ensure they are optional or omit them
         return this.http.post<Transaction>(this.apiUrl, newTransaction);
     }
 
-
+    // Changed to accept _id as the primary identifier for updates
     updateTransaction(updatedTransaction: Transaction): Observable<Transaction> {
-        return this.http.put<Transaction>(`${this.apiUrl}/${updatedTransaction.id}`, updatedTransaction);
+        if (!updatedTransaction._id) {
+            throw new Error('Transaction _id is required for update operation.');
+        }
+        return this.http.put<Transaction>(`${this.apiUrl}/${updatedTransaction._id}`, updatedTransaction);
     }
 
+    // Changed to accept _id as the primary identifier for status updates
     updateTransactionStatus(
-        id: string,
+        _id: string, // Now explicitly expecting _id
         newStatus: 'ACCEPTED' | 'REJECTED' | 'DELETED',
         rejectionReason?: string,
         byUser?: string
@@ -42,7 +48,7 @@ export class TransactionService {
             rejectedAt?: string;
             acceptedBy?: string;
             rejectedBy?: string;
-            byUser?: string;
+            byUser?: string; // byUser is passed directly in the payload
         } = { status: newStatus };
 
         if (newStatus === 'ACCEPTED') {
@@ -52,13 +58,17 @@ export class TransactionService {
             payload.rejectedAt = new Date().toISOString();
             payload.rejectedBy = byUser;
             payload.rejectionReason = rejectionReason;
+        } else if (newStatus === 'DELETED') {
+            // Add specific fields for soft delete if needed
+            // These would be handled by the backend based on the status change
         }
 
-
-        return this.http.patch<Transaction>(`${this.apiUrl}/${id}/status`, { ...payload, byUser: byUser });
+        // Pass byUser directly in the payload
+        return this.http.patch<Transaction>(`${this.apiUrl}/${_id}/status`, { ...payload, byUser: byUser });
     }
 
-    deleteTransaction(id: string, byUser?: string): Observable<Transaction> {
-        return this.updateTransactionStatus(id,'DELETED',undefined,byUser)
+    // Changed to accept _id for deletion
+    deleteTransaction(_id: string, byUser?: string): Observable<Transaction> {
+        return this.updateTransactionStatus(_id, 'DELETED', undefined, byUser);
     }
 }

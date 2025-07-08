@@ -1,37 +1,29 @@
-// src/app/status-cell-renderer/status-cell-renderer.component.ts
 import { CommonModule } from '@angular/common';
 import { Component } from '@angular/core';
 
 import { ICellRendererAngularComp } from 'ag-grid-angular';
 import { ICellRendererParams } from 'ag-grid-community';
 
+import { StatusTagComponent } from '../shared/status-tag/status-tag'; // Import StatusTagComponent
+
 @Component({
   selector: 'app-status-cell-renderer',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, StatusTagComponent], // Add StatusTagComponent to imports
   template: `
-    <span [ngClass]="{
-      'status-pending': value === 'PENDING',
-      'status-accepted': value === 'ACCEPTED',
-      'status-rejected': value === 'REJECTED',
-      'status-deleted': value === 'DELETED'
-    }">
-      {{ value }}
-    </span>
+    <app-status-tag [status]="value"></app-status-tag>
   `,
   styleUrls: ['./status-cell-renderer.component.scss']
 })
 export class StatusCellRendererComponent implements ICellRendererAngularComp {
-  value: any; // The value of the cell (e.g., 'PENDING', 'ACCEPTED')
+  value: any;
 
-  // agInit is called by AG Grid to initialize the cell renderer
   agInit(params: ICellRendererParams): void {
     this.value = params.value;
   }
 
-  // refresh is called by AG Grid to update the cell renderer
   refresh(params: ICellRendererParams): boolean {
     this.value = params.value;
-    return true; // Return true to indicate that the component can refresh
+    return true;
   }
 }

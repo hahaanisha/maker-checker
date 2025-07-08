@@ -2,7 +2,7 @@
 import { Component, Input, Output, EventEmitter, ViewChild, AfterViewInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule, NgForm } from '@angular/forms';
-import { ChangeDetectorRef } from '@angular/core'; // Import ChangeDetectorRef
+import { ChangeDetectorRef } from '@angular/core';
 
 @Component({
   selector: 'app-rejection-reason-modal',
@@ -12,31 +12,26 @@ import { ChangeDetectorRef } from '@angular/core'; // Import ChangeDetectorRef
   styleUrls: ['./rejection-modal.scss']
 })
 export class RejectionReasonModalComponent implements AfterViewInit {
-  @Input() transactionId: string | null = null; // For single transaction context
+  @Input() transactionId: string | null = null;
   @Output() reasonSubmitted = new EventEmitter<string>();
   @Output() cancel = new EventEmitter<void>();
 
   @ViewChild('rejectionForm') rejectionForm!: NgForm;
-  @ViewChild('reasonInput') reasonInput!: any; 
+  @ViewChild('reasonInput') reasonInput!: any;
 
   rejectionReason: string = '';
-  changeDetectorRef = inject(ChangeDetectorRef); 
+  changeDetectorRef = inject(ChangeDetectorRef);
 
   ngAfterViewInit(): void {
     this.changeDetectorRef.detectChanges();
   }
 
   onSubmit(): void {
-    console.log('[RejectionReasonModal] onSubmit called.');
-    console.log(`[RejectionReasonModal] Form valid: ${this.rejectionForm?.valid}`);
-    console.log(`[RejectionReasonModal] Reason input valid: ${this.reasonInput?.valid}`);
-    console.log(`[RejectionReasonModal] Rejection reason: "${this.rejectionReason}"`);
-
     if (this.rejectionForm.valid && this.rejectionReason.trim() !== '') {
       this.reasonSubmitted.emit(this.rejectionReason.trim());
     } else {
-      console.warn('[RejectionReasonModal] Form is invalid or reason is empty. Not submitting.');
-  
+      // You might want to add a visual cue to the user that the field is required
+      // For example, by setting a flag and displaying an error message in the template.
     }
   }
 

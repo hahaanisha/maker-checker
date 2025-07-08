@@ -1,39 +1,46 @@
-import { Component } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
-import { HttpClient, HttpClientModule } from '@angular/common/http';
+import { HttpClient } from '@angular/common/http'; // HttpClientModule is provided via app.config.ts now
 
 @Component({
   selector: 'app-login',
   standalone: true,
-  imports: [CommonModule, FormsModule, HttpClientModule],
+  imports: [CommonModule, FormsModule], // HttpClientModule is provided at app level
   templateUrl: './login.html',
   styleUrls: ['./login.scss']
 })
 export class LoginComponent {
-  errorMessage = ''; // Message to display on login failure
+  errorMessage = ''; 
+  private http = inject(HttpClient); 
+  private router = inject(Router); 
 
-  constructor(private http: HttpClient, private router: Router) {}
+  // Hypothetical backend login endpoint
+  private loginApiUrl = 'http://localhost:3000/api/login'; // You need to implement this on your Node.js backend
 
   onLogin(form: any): void {
-    this.errorMessage = ''; // Clear previous error messages
-    this.http.get<any[]>('assets/data/role.json').subscribe({
-      next: (roles) => {
-        const user = roles.find(
-          r => r.role === form.role && r.password === form.password
-        );
+    this.errorMessage = ''; 
 
-        if (user) {
-          localStorage.setItem('role', user.role); // Store the role in local storage
-          this.router.navigate(['/home']); // Navigate to the home page
+    this.http.post<any>(this.loginApiUrl, { role: form.role, password: form.password }).subscribe({
+      next: (response) => {
+       
+        if (response && response.success && response.role) {
+          localStorage.setItem('role', response.role);
+          this.router.navigate(['/home']); 
         } else {
-          this.errorMessage = 'Invalid role, role ID, or password.'; // Set error message
+     
+          this.errorMessage = response.message || 'Invalid role or password.';
         }
       },
       error: (err) => {
-        console.error('Error loading roles data:', err);
-        this.errorMessage = 'Could not load login data. Please try again later.';
+        console.error('Login error:', err);
+       
+        if (err.status === 401) {
+          this.errorMessage = 'Invalid role or password.';
+        } else {
+          this.errorMessage = 'Login failed. Please try again later.';
+        }
       }
     });
   }

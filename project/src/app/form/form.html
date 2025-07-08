@@ -52,6 +52,7 @@
       </div>
 
       <div class="form-actions">
+        <!-- Removed (click)="onSubmit()" from here -->
         <button type="submit" [disabled]="!txnForm.form.valid">{{ isEditMode ? 'Update' : 'Submit' }}</button>
         <button type="button" (click)="onCancel()">Cancel</button>
       </div>

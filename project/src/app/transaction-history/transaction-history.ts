@@ -1,7 +1,7 @@
-// src/app/home/components/sidebar/components/transaction-history/transaction-history.component.ts
+
 import { Component, Input } from '@angular/core';
 import { CommonModule, DatePipe } from '@angular/common';
-import { Transaction } from '../interfaces/transaction.interface'; // Adjust path as needed
+import { Transaction } from '../interfaces/transaction.interface'; // Corrected import path
 
 @Component({
   selector: 'app-transaction-history',
@@ -11,5 +11,5 @@ import { Transaction } from '../interfaces/transaction.interface'; // Adjust pat
   styleUrls: ['./transaction-history.scss']
 })
 export class TransactionHistoryComponent {
-  @Input() transaction!: Transaction; // Input property to receive the transaction data
+  @Input() transaction!: Transaction;
 }

@@ -2,7 +2,9 @@
 import { Component, Input, Output, EventEmitter, OnInit, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule, NgForm } from '@angular/forms';
-import { Transaction } from '../interfaces/transaction.interface'; // Import the Transaction interface
+import { Transaction } from '../interfaces/transaction.interface';
+import { TransactionService } from '../services/service';
+import { take } from 'rxjs/operators';
 
 @Component({
   selector: 'app-transaction-form',
@@ -11,11 +13,9 @@ import { Transaction } from '../interfaces/transaction.interface'; // Import the
   templateUrl: './form.html',
   styleUrls: ['./form.scss']
 })
-
 export class TransactionFormComponent implements OnInit {
   @Input() isEditMode: boolean = false;
   @Input() transaction: Transaction | null = null;
-  @Input() nextTransactionId: string = '';
 
   @Output() transactionAdded = new EventEmitter<Transaction>();
   @Output() transactionUpdated = new EventEmitter<Transaction>();
@@ -24,29 +24,29 @@ export class TransactionFormComponent implements OnInit {
   @ViewChild('txnForm') txnForm!: NgForm;
 
   formData: Transaction = {
-    id: '',
     fromAccount: '',
     toAccount: '',
     amount: 0,
     currency: '',
     description: '',
-    status: 'PENDING',
-    createdAt: new Date().toISOString()
+    createdBy: '',
+    status: 'PENDING'
   };
+
+  constructor(private transactionService: TransactionService) { }
 
   ngOnInit(): void {
     if (this.isEditMode && this.transaction) {
       this.formData = { ...this.transaction };
     } else {
       this.formData = {
-        id: this.nextTransactionId,
         fromAccount: '',
         toAccount: '',
         amount: 0,
         currency: '',
         description: '',
-        status: 'PENDING',
-        createdAt: new Date().toISOString()
+        createdBy: '',
+        status: 'PENDING'
       };
     }
   }
@@ -54,11 +54,30 @@ export class TransactionFormComponent implements OnInit {
   onSubmit(): void {
     if (this.txnForm.valid) {
       if (this.isEditMode) {
-        this.transactionUpdated.emit(this.formData);
+        this.transactionService.updateTransaction(this.formData)
+          .pipe(take(1))
+          .subscribe({
+            next: (updatedTx) => {
+              this.transactionUpdated.emit(updatedTx);
+              this.txnForm.resetForm();
+            },
+            error: (error) => {
+              console.error('Error updating transaction:', error);
+            }
+          });
       } else {
-        this.transactionAdded.emit(this.formData);
+        this.transactionService.addTransaction(this.formData)
+          .pipe(take(1))
+          .subscribe({
+            next: (newTx) => {
+              this.transactionAdded.emit(newTx);
+              this.txnForm.resetForm();
+            },
+            error: (error) => {
+              console.error('Error adding transaction:', error);
+            }
+          });
       }
-      this.txnForm.resetForm();
     }
   }
 
@@ -67,4 +86,3 @@ export class TransactionFormComponent implements OnInit {
     this.txnForm.resetForm();
   }
 }
-

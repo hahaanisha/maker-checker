@@ -1,11 +1,11 @@
-import { Component, Input, Output, EventEmitter, OnInit, OnChanges, SimpleChanges, inject } from '@angular/core';
+import { Component, Input, Output, EventEmitter, OnInit, OnChanges, SimpleChanges } from '@angular/core';
 import { CommonModule, DatePipe } from '@angular/common';
 
 import { AgGridAngular } from 'ag-grid-angular';
 import { ColDef, GridApi, GridOptions, RowClickedEvent, ModuleRegistry, AllCommunityModule } from 'ag-grid-community';
 
-import 'ag-grid-community/styles/ag-grid.css'; // Keep this if you want to use ag-theme-alpine
-import 'ag-grid-community/styles/ag-theme-alpine.css'; // Keep this if you want to use ag-theme-alpine
+import 'ag-grid-community/styles/ag-grid.css';
+import 'ag-grid-community/styles/ag-theme-alpine.css';
 
 import { StatusCellRendererComponent } from '../status-cell-renderer/status-cell-renderer.component';
 import { ActionsCellRendererComponent } from '../actions-cell-renderer/actions-cell-renderer.component';
@@ -32,16 +32,15 @@ export class TransactionTableComponent implements OnInit, OnChanges {
   @Input() role: string | null = null;
   @Input() activeTab!: 'PENDING' | 'ACCEPTED' | 'REJECTED' | 'DELETED';
   @Input() selectedRowCount: number = 0;
-  @Input() showMassActions: boolean = false;
+  @Input() showMassActions: boolean = false; // This input controls the display of the mass action bar
 
   @Output() gridApiReady = new EventEmitter<GridApi>();
   @Output() rowSelected = new EventEmitter<{ selectedCount: number; selectedRows: Transaction[] }>();
   @Output() rowClicked = new EventEmitter<Transaction>();
-  // Outputs to HomeComponent for individual row actions
-  @Output() editClicked = new EventEmitter<Transaction>();
-  @Output() deleteClicked = new EventEmitter<string>();
-  @Output() acceptClicked = new EventEmitter<string>();
-  @Output() rejectClicked = new EventEmitter<string>();
+  @Output() editClicked = new EventEmitter<Transaction>(); // Emits full transaction for edit
+  @Output() deleteClicked = new EventEmitter<string>(); // Emits _id for delete
+  @Output() acceptClicked = new EventEmitter<string>(); // Emits _id for accept
+  @Output() rejectClicked = new EventEmitter<string>(); // Emits _id for reject
   @Output() massDeleteClicked = new EventEmitter<void>();
   @Output() massAcceptClicked = new EventEmitter<void>();
   @Output() massRejectClicked = new EventEmitter<void>();
@@ -62,24 +61,25 @@ export class TransactionTableComponent implements OnInit, OnChanges {
         statusCellRenderer: StatusCellRendererComponent,
         actionsCellRenderer: ActionsCellRendererComponent,
       },
+      // Pass 'this' (TransactionTableComponent instance) and 'role' to the cell renderers' context
       context: {
-        // Pass 'this' (TransactionTableComponent instance) to the cell renderer context
-        // The cell renderer will now call methods directly on this component.
-        parentComponent: this, 
-        role: this.role
+        parentComponent: this,
+        // role will be updated in ngOnInit and ngOnChanges
       },
       rowSelection: 'multiple',
       rowMultiSelectWithClick: true,
       enableCellTextSelection: true,
       ensureDomOrder: true,
-      
+
       onSelectionChanged: (params) => {
         if (this.gridApi) {
           const selectedRows = this.gridApi.getSelectedRows();
+          // Emit the selected count and rows to the parent (HomeComponent)
           this.rowSelected.emit({ selectedCount: selectedRows.length, selectedRows: selectedRows });
         }
       },
       onRowClicked: (event: RowClickedEvent) => {
+        // Only emit rowClicked if the click wasn't on an action button or checkbox
         if (event.data && event.event?.target &&
             !(event.event.target as HTMLElement).closest('.action-buttons') &&
             !(event.event.target as HTMLElement).closest('.ag-selection-checkbox')) {
@@ -89,6 +89,10 @@ export class TransactionTableComponent implements OnInit, OnChanges {
       onGridReady: (params) => {
           this.gridApi = params.api;
           this.gridApiReady.emit(this.gridApi);
+          // Set role in context after grid is ready and role is available
+          if (this.gridOptions.context) {
+            this.gridOptions.context.role = this.role;
+          }
           params.api.sizeColumnsToFit();
       },
       onFirstDataRendered: (params) => {
@@ -110,6 +114,7 @@ export class TransactionTableComponent implements OnInit, OnChanges {
   }
 
   ngOnInit(): void {
+    // Ensure role is set in context when component initializes
     if (this.gridOptions.context) {
       this.gridOptions.context.role = this.role;
     }
@@ -117,11 +122,12 @@ export class TransactionTableComponent implements OnInit, OnChanges {
 
   ngOnChanges(changes: SimpleChanges): void {
     if (changes['rowData'] && this.gridApi) {
-      this.gridApi.setGridOption('rowData', this.rowData); 
+      this.gridApi.setGridOption('rowData', this.rowData);
       this.gridApi.paginationGoToFirstPage();
     }
     if (changes['role'] && this.gridOptions.context) {
       this.gridOptions.context.role = this.role;
+      // Force refresh cells to re-evaluate visibility of action buttons based on new role
       if (this.gridApi) {
         this.gridApi.refreshCells({ force: true });
       }
@@ -149,10 +155,10 @@ export class TransactionTableComponent implements OnInit, OnChanges {
       minWidth: 120,
       cellRenderer: (params: { data: { id: string; }; value: string; }) => {
         const mainId = params.value;
-        const referenceNum = `Ref: ${mainId.substring(0, 8)}...`;
+        const referenceNum = `Ref: ${mainId ? mainId.substring(0, 8) + '...' : '-'}`; // Handle potential undefined/null id
         return `
           <div style="display: flex; flex-direction: column; justify-content: center; height: 100%; padding-left: 10px;">
-            <div style="font-weight: 500; color: #333; line-height: 1.2;">${mainId}</div>
+            <div style="font-weight: 500; color: #333; line-height: 1.2;">${mainId || '-'}</div>
             <div style="font-size: 0.8em; color: gray; line-height: 1.2; margin-top: 2px;">${referenceNum}</div>
           </div>
         `;
@@ -274,19 +280,22 @@ export class TransactionTableComponent implements OnInit, OnChanges {
     }
   }
 
-
+  // Emits the full transaction object for editing
   onEdit(transaction: Transaction): void {
     this.editClicked.emit(transaction);
   }
 
+  // Emits the _id for delete action
   onDelete(transactionId: string): void {
     this.deleteClicked.emit(transactionId);
   }
 
+  // Emits the _id for accept action
   onAccept(transactionId: string): void {
     this.acceptClicked.emit(transactionId);
   }
 
+  // Emits the _id for reject action
   onReject(transactionId: string): void {
     this.rejectClicked.emit(transactionId);
   }

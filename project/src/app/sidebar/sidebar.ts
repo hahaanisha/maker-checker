@@ -3,11 +3,10 @@ import { Component, Input, Output, EventEmitter } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Transaction, FilterOptions } from '../interfaces/transaction.interface';
 
-// Import nested sidebar components
-import { TransactionDetailsComponent } from '../transaction-details/transaction-details';
-import { TransactionHistoryComponent } from '../transaction-history/transaction-history';
-import { FilterOptionsComponent } from '../filter/filter';
-import { StatusTagComponent } from '../shared/status-tag/status-tag'; // Import StatusTagComponent
+import { TransactionDetailsComponent } from '../transaction-details/transaction-details'; // Corrected import path
+import { TransactionHistoryComponent } from '../transaction-history/transaction-history'; // Corrected import path
+import { FilterOptionsComponent } from '../filter/filter'; // Corrected import path
+import { StatusTagComponent } from '../shared/status-tag/status-tag'; // Corrected import path
 
 @Component({
   selector: 'app-sidebar',
@@ -15,9 +14,9 @@ import { StatusTagComponent } from '../shared/status-tag/status-tag'; // Import 
   imports: [
     CommonModule,
     TransactionDetailsComponent,
-    TransactionHistoryComponent, // Assuming you also have this component
+    TransactionHistoryComponent,
     FilterOptionsComponent,
-    StatusTagComponent // Add StatusTagComponent here
+    StatusTagComponent
   ],
   templateUrl: './sidebar.html',
   styleUrls: ['./sidebar.scss']
@@ -26,7 +25,7 @@ export class SidebarComponent {
   @Input() isOpen: boolean = false;
   @Input() selectedTransaction: Transaction | null = null;
   @Input() activeTab: 'overview' | 'history' | 'filter' = 'overview';
-  @Input() filterOptions!: FilterOptions; // Input for filter options
+  @Input() filterOptions!: FilterOptions;
 
   @Output() closeSidebar = new EventEmitter<void>();
   @Output() tabChange = new EventEmitter<'overview' | 'history' | 'filter'>();

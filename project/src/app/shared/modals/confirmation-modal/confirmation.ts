@@ -8,16 +8,15 @@ import { CommonModule } from '@angular/common';
   templateUrl: './confirmation-modal.html',
   styleUrls: ['./confirmation-modal.scss']
 })
-
 export class ConfirmationModalComponent {
     @Input() message: string='Are you sure?';
     @Output() confirmed= new EventEmitter<void>();
-     @Output() cancelled= new EventEmitter<void>();
+    @Output() cancelled= new EventEmitter<void>();
 
-onConfirm(): void{
+  onConfirm(): void{
     this.confirmed.emit()
-}
-onCancelled(): void{
+  }
+  onCancelled(): void{
     this.cancelled.emit()
-}
+  }
 }
