@@ -23,9 +23,9 @@
       <button [class.active]="activeTab === 'history'" (click)="onTabChange('history')"
         [disabled]="!selectedTransaction">History</button>
     </ng-container>
-    <ng-container *ngIf="!selectedTransaction">
+    <!-- <ng-container *ngIf="!selectedTransaction">
       <button [class.active]="activeTab === 'filter'" (click)="onTabChange('filter')">Filter</button>
-    </ng-container>
+    </ng-container> -->
   </div>
 
   <div class="sidebar-content">
