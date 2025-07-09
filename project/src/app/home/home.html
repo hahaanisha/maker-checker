@@ -1,6 +1,17 @@
 <main class="home-container">
-  <div class="create-btn" *ngIf="role === 'maker'|| role=== 'admin' ">
-    <button (click)="toggleAddForm()">CREATE NEW TRANSACTION</button>
+  <div class="home-top">
+    <div class="search-and-filter-container">
+      <div class="search-bar">
+        <input type="text" placeholder="Search transactions here" [ngModel]="searchTerm" (ngModelChange)="onSearchChange($event)" />
+      </div>
+      <span class="filter-icon material-icons" (click)="openSidebar()">filter_list</span>
+    </div>
+
+    <div class="create-btn" *ngIf="role === 'maker' || role === 'admin'">
+      <button (click)="toggleAddForm()">
+        <i class="fas fa-plus"></i> Add New
+      </button>
+    </div>
   </div>
 
   <app-transaction-form
@@ -35,13 +46,7 @@
     </button>
   </div>
 
-  <div class="search-and-filter-container">
-    <div class="search-bar">
-      <input type="text" placeholder="Search transactions here" [ngModel]="searchTerm"
-        (ngModelChange)="onSearchChange($event)" />
-    </div>
-    <span class="filter-icon material-icons" (click)="openSidebar()">filter_list</span>
-  </div>
+ 
 
   <app-transaction-table
     [rowData]="agGridDisplayData"
