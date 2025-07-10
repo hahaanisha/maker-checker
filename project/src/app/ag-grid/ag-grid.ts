@@ -41,7 +41,7 @@ ModuleRegistry.registerModules([AllCommunityModule]);
   ],
   providers: [DatePipe],
   templateUrl: './ag-grid.html',
-  styleUrls: ['./ag-grid.scss']
+  // styleUrls: ['./ag-grid.scss']
 })
 export class TransactionTableComponent implements OnInit, OnChanges {
   @Input() rowData: Transaction[] = [];
@@ -70,7 +70,7 @@ export class TransactionTableComponent implements OnInit, OnChanges {
     suppressCellFocus: true,
     paginationPageSizeSelector: false,
     suppressPaginationPanel: true,
-    rowHeight: 45,
+    rowHeight: 48,
     components: {
       statusCellRenderer: StatusCellRendererComponent,
       actionsCellRenderer: ActionsCellRendererComponent,
@@ -161,7 +161,8 @@ export class TransactionTableComponent implements OnInit, OnChanges {
       filter: false,
       suppressColumnsToolPanel: true,
       suppressNavigable: true,
-      lockPosition: true
+      lockPosition: true,
+
     },
     {
       headerName: 'ID',
