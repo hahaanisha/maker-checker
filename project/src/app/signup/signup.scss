@@ -1,5 +1,5 @@
-/* src/app/login/login.component.scss */
-.login-container {
+/* src/app/signup/signup.component.scss */
+.signup-container {
   display: flex;
   justify-content: center;
   align-items: center;
@@ -8,7 +8,7 @@
   font-family: 'Inter', sans-serif;
 }
 
-.login-container form {
+.signup-container form {
   background-color: #fff;
   padding: 3rem 2rem;
   border-radius: 10px;
@@ -22,7 +22,7 @@
   border: 1px solid #ddd;
 }
 
-.login-container h2 {
+.signup-container h2 {
   margin-top: 0;
   margin-bottom: 1.5rem;
   color: #333;
@@ -30,8 +30,7 @@
   font-weight: 600;
 }
 
-.login-container input,
-.login-container select {
+.signup-container input, .signup-container select {
   padding: 1rem;
   border: 1px solid #ccc;
   border-radius: 6px;
@@ -39,32 +38,13 @@
   transition: border-color 0.3s ease, box-shadow 0.3s ease;
 }
 
-.login-container input:focus,
-.login-container select:focus {
+.signup-container input:focus, .signup-container select:focus {
   outline: none;
   border-color: #007bff;
   box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.25);
 }
 
-.signup-link {
-  align-self: flex-end;
-  margin-top: -1rem;
-  margin-bottom: 0.5rem;
-  font-size: 0.9rem;
-  color: #666;
-}
-
-.signup-link a {
-  color: #007bff;
-  text-decoration: none;
-  font-weight: 500;
-}
-
-.signup-link a:hover {
-  text-decoration: underline;
-}
-
-.login-container button {
+.signup-container button {
   background-color: #007bff;
   color: white;
   border: none;
@@ -77,12 +57,12 @@
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
 }
 
-.login-container button:hover:not(:disabled) {
+.signup-container button:hover:not(:disabled) {
   background-color: #0056b3;
   transform: translateY(-2px);
 }
 
-.login-container button:disabled {
+.signup-container button:disabled {
   background-color: #cccccc;
   cursor: not-allowed;
   opacity: 0.7;

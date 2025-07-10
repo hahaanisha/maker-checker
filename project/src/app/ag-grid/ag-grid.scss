@@ -1,12 +1,9 @@
 /* src/app/home/components/transaction-table/transaction-table.scss */
+
 /* AG Grid Theme Customization based on traditional table styles */
 .table-container {
-  // background-color: #fff;
-  // padding: 2rem;
   border-radius: 8px;
-  // box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
   overflow-x: auto;
-  // border: 1px solid #ddd;
   margin-top: 2rem;
   height: 400px;
   display: flex;
@@ -25,72 +22,77 @@
   width: 100%;
   height: 100%;
 
-  /* Override AG-Grid CSS variables for custom look */
-  --ag-row-height: 48px;
-  --ag-header-height: 48px;
+ 
+  --ag-row-height: 60px !important; 
+  --ag-header-height: 48px !important;
   --ag-grid-size: 100%;
   --ag-font-size: 14px;
   --ag-font-family: 'Inter', sans-serif;
   --ag-border-color: #e0e0e0;
   --ag-odd-row-background-color: #f6f6f6;
 
-  /* Header cell styles (similar to 'th' in snippet) */
+  /* Header cell styles */
   .ag-header-cell {
-    background-color: #e9ecef;
-    font-weight: bold;
-    color: #495057;
-    text-transform: uppercase;
-    font-size: 0.9rem;
-    border-right: 1px solid var(--ag-border-color);
-    border-bottom: 1px solid var(--ag-border-color);
-    display: flex;
-    align-items: center;
-    justify-content: flex-start;
-    padding: 0.8rem;
+    background-color: #e9ecef !important;
+    font-weight: bold !important;
+    color: #495057 !important;
+    text-transform: uppercase !important;
+    font-size: 0.9rem !important;
+    border-right: 1px solid var(--ag-border-color) !important;
+    border-bottom: 1px solid var(--ag-border-color) !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    padding: 0.8rem !important;
   }
 
-  /* Specific header cell label alignment for centering if desired (can be adjusted per column) */
+  /* Center header cell label */
   .ag-header-cell-label {
-    width: 100%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
+    width: 100% !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
   }
 
-  /* Data cell styles (similar to 'td' in snippet) */
+  /* Center cell content */
   .ag-cell {
-    border: 1px solid var(--ag-border-color);
-    padding: 0.8rem;
-    padding-top: 12px;
-    text-align: left;
-    white-space: normal;
-    display: flex;
-    align-items: flex-start;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    height: 100% !important;
+
+    & > * {
+      display: flex !important;
+      align-items: center !important;
+      justify-content: center !important;
+      height: 100% !important;
+    }
   }
 
-  /* Row hover effect (similar to tbody tr:hover) */
+  /* Row hover effect */
   .ag-row:hover {
     background-color: #e2f4ff !important;
   }
 
-  /* Odd row background (equivalent to tbody tr:nth-child(even) due to AG Grid's row rendering) */
+  /* Odd row background */
   .ag-row-odd {
-    background-color: var(--ag-odd-row-background-color);
+    background-color: var(--ag-odd-row-background-color) !important;
   }
 
   /* Specific styles for the checkbox selection cell */
   .ag-cell-wrapper.ag-row-level-0.ag-checkbox-cell {
-    display: flex;
-    align-items: flex-start;
-    justify-content: center;
-    padding-top: 12px;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    padding-top: 0 !important;
   }
+
   .ag-selection-checkbox {
-    transform: scale(1.1);
+    transform: scale(1.1) !important;
   }
 }
 
-/* ENSURING AG GRID'S DEFAULT PAGINATION PANEL IS HIDDEN */
+/* Ensure AG Grid's default pagination panel is hidden */
 .ag-theme-alpine .ag-paging-panel {
   display: none !important;
 }
@@ -111,9 +113,9 @@
   gap: 0.5rem;
   margin-top: 1.5rem;
   padding: 0.5rem;
-  background-color: #f0f2f5;
+  background-color: #f8f8f8;
   border-radius: 8px;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
 }
 
 .pagination-controls button {
@@ -141,8 +143,8 @@
 
 .pagination-controls button:first-child:hover:not(:disabled),
 .pagination-controls button:last-child:hover:not(:disabled) {
-    background-color: #0056b3;
-    transform: translateY(-1px);
+  background-color: #0056b3;
+  transform: translateY(-1px);
 }
 
 .pagination-controls button:disabled {
@@ -179,7 +181,7 @@
   padding: 0.3rem 0.6rem;
 }
 
-/* Action buttons styling (applies to buttons within ActionsCellRendererComponent) */
+/* Action buttons styling */
 .action-buttons {
   display: flex;
   justify-content: center;
@@ -190,7 +192,7 @@
 }
 
 .action-buttons button {
-  padding: 0.5rem 0.8rem;
+  padding: 0.3rem 0.4rem;
   border: none;
   border-radius: 4px;
   cursor: pointer;
@@ -246,8 +248,6 @@
   transform: translateY(-1px);
 }
 
-
-
 .selected-rows-info {
   display: flex;
   justify-content: space-between;
@@ -256,7 +256,7 @@
   margin-top: 1.5rem;
   background-color: #e9ecef;
   border-radius: 8px;
-  box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
   font-weight: 500;
   color: #333;
   gap: 1rem;

@@ -1,8 +1,24 @@
-import { Component, Input, Output, EventEmitter, OnInit, OnChanges, SimpleChanges } from '@angular/core';
+import {
+  Component,
+  Input,
+  Output,
+  EventEmitter,
+  OnInit,
+  OnChanges,
+  SimpleChanges
+} from '@angular/core';
 import { CommonModule, DatePipe } from '@angular/common';
 
 import { AgGridAngular } from 'ag-grid-angular';
-import { ColDef, GridApi, GridOptions, RowClickedEvent, ModuleRegistry, AllCommunityModule } from 'ag-grid-community';
+import {
+  ColDef,
+  GridApi,
+  GridOptions,
+  RowClickedEvent,
+  ModuleRegistry,
+  AllCommunityModule,
+  ICellRendererParams
+} from 'ag-grid-community';
 
 import 'ag-grid-community/styles/ag-grid.css';
 import 'ag-grid-community/styles/ag-theme-alpine.css';
@@ -32,89 +48,88 @@ export class TransactionTableComponent implements OnInit, OnChanges {
   @Input() role: string | null = null;
   @Input() activeTab!: 'PENDING' | 'ACCEPTED' | 'REJECTED' | 'DELETED';
   @Input() selectedRowCount: number = 0;
-  @Input() showMassActions: boolean = false; // This input controls the display of the mass action bar
+  @Input() showMassActions: boolean = false;
 
   @Output() gridApiReady = new EventEmitter<GridApi>();
   @Output() rowSelected = new EventEmitter<{ selectedCount: number; selectedRows: Transaction[] }>();
   @Output() rowClicked = new EventEmitter<Transaction>();
-  @Output() editClicked = new EventEmitter<Transaction>(); // Emits full transaction for edit
-  @Output() deleteClicked = new EventEmitter<string>(); // Emits _id for delete
-  @Output() acceptClicked = new EventEmitter<string>(); // Emits _id for accept
-  @Output() rejectClicked = new EventEmitter<string>(); // Emits _id for reject
+  @Output() editClicked = new EventEmitter<Transaction>();
+  @Output() deleteClicked = new EventEmitter<string>();
+  @Output() acceptClicked = new EventEmitter<string>();
+  @Output() rejectClicked = new EventEmitter<string>();
   @Output() massDeleteClicked = new EventEmitter<void>();
   @Output() massAcceptClicked = new EventEmitter<void>();
   @Output() massRejectClicked = new EventEmitter<void>();
 
   gridApi!: GridApi;
-  gridOptions: GridOptions;
 
-  constructor() {
-    this.gridOptions = {
-      domLayout: 'autoHeight',
-      pagination: true,
-      paginationPageSize: 4,
-      suppressCellFocus: true,
-      paginationPageSizeSelector: false,
-      suppressPaginationPanel: true,
-      rowHeight: 45,
-      components: {
-        statusCellRenderer: StatusCellRendererComponent,
-        actionsCellRenderer: ActionsCellRendererComponent,
-      },
-      // Pass 'this' (TransactionTableComponent instance) and 'role' to the cell renderers' context
-      context: {
-        parentComponent: this,
-        // role will be updated in ngOnInit and ngOnChanges
-      },
-      rowSelection: 'multiple',
-      rowMultiSelectWithClick: true,
-      enableCellTextSelection: true,
-      ensureDomOrder: true,
+  gridOptions: GridOptions = {
+    domLayout: 'autoHeight',
+    pagination: true,
+    paginationPageSize: 4,
+    suppressCellFocus: true,
+    paginationPageSizeSelector: false,
+    suppressPaginationPanel: true,
+    rowHeight: 45,
+    components: {
+      statusCellRenderer: StatusCellRendererComponent,
+      actionsCellRenderer: ActionsCellRendererComponent,
+    },
+    context: {
+      parentComponent: this
+    },
+    rowSelection: 'multiple',
+    rowMultiSelectWithClick: true,
+    enableCellTextSelection: true,
+    ensureDomOrder: true,
 
-      onSelectionChanged: (params) => {
-        if (this.gridApi) {
-          const selectedRows = this.gridApi.getSelectedRows();
-          // Emit the selected count and rows to the parent (HomeComponent)
-          this.rowSelected.emit({ selectedCount: selectedRows.length, selectedRows: selectedRows });
-        }
-      },
-      onRowClicked: (event: RowClickedEvent) => {
-        // Only emit rowClicked if the click wasn't on an action button or checkbox
-        if (event.data && event.event?.target &&
-            !(event.event.target as HTMLElement).closest('.action-buttons') &&
-            !(event.event.target as HTMLElement).closest('.ag-selection-checkbox')) {
-          this.rowClicked.emit(event.data);
-        }
-      },
-      onGridReady: (params) => {
-          this.gridApi = params.api;
-          this.gridApiReady.emit(this.gridApi);
-          // Set role in context after grid is ready and role is available
-          if (this.gridOptions.context) {
-            this.gridOptions.context.role = this.role;
-          }
-          params.api.sizeColumnsToFit();
-      },
-      onFirstDataRendered: (params) => {
-          params.api.sizeColumnsToFit();
-      },
-      onGridSizeChanged: (params) => {
-          if (this.gridApi) {
-              this.gridApi.sizeColumnsToFit();
-          }
-      },
-      defaultColDef: {
-        sortable: true,
-        filter: false,
-        resizable: true,
-        flex: 1,
-        minWidth: 100,
+    onSelectionChanged: (params) => {
+      if (this.gridApi) {
+        const selectedRows = this.gridApi.getSelectedRows();
+        this.rowSelected.emit({ selectedCount: selectedRows.length, selectedRows });
       }
-    };
-  }
+    },
+
+    onRowClicked: (event: RowClickedEvent) => {
+      if (
+        event.data &&
+        event.event?.target &&
+        !(event.event.target as HTMLElement).closest('.action-buttons') &&
+        !(event.event.target as HTMLElement).closest('.ag-selection-checkbox')
+      ) {
+        this.rowClicked.emit(event.data);
+      }
+    },
+
+    onGridReady: (params) => {
+      this.gridApi = params.api;
+      this.gridApiReady.emit(this.gridApi);
+      if (this.gridOptions.context) {
+        this.gridOptions.context.role = this.role;
+      }
+      params.api.sizeColumnsToFit();
+    },
+
+    onFirstDataRendered: (params) => {
+      params.api.sizeColumnsToFit();
+    },
+
+    onGridSizeChanged: (params) => {
+      if (this.gridApi) {
+        this.gridApi.sizeColumnsToFit();
+      }
+    },
+
+    defaultColDef: {
+      sortable: true,
+      filter: false,
+      resizable: true,
+      flex: 1,
+      minWidth: 100,
+    }
+  };
 
   ngOnInit(): void {
-    // Ensure role is set in context when component initializes
     if (this.gridOptions.context) {
       this.gridOptions.context.role = this.role;
     }
@@ -127,7 +142,6 @@ export class TransactionTableComponent implements OnInit, OnChanges {
     }
     if (changes['role'] && this.gridOptions.context) {
       this.gridOptions.context.role = this.role;
-      // Force refresh cells to re-evaluate visibility of action buttons based on new role
       if (this.gridApi) {
         this.gridApi.refreshCells({ force: true });
       }
@@ -140,8 +154,8 @@ export class TransactionTableComponent implements OnInit, OnChanges {
       headerCheckboxSelection: true,
       checkboxSelection: true,
       width: 40,
-      minWidth: 40,
-      maxWidth: 40,
+      minWidth: 70,
+      maxWidth: 70,
       resizable: false,
       sortable: false,
       filter: false,
@@ -153,9 +167,9 @@ export class TransactionTableComponent implements OnInit, OnChanges {
       headerName: 'ID',
       field: 'id',
       minWidth: 120,
-      cellRenderer: (params: { data: { id: string; }; value: string; }) => {
+      cellRenderer: (params: any) => {
         const mainId = params.value;
-        const referenceNum = `Ref: ${mainId ? mainId.substring(0, 8) + '...' : '-'}`; // Handle potential undefined/null id
+        const referenceNum = `Ref: ${mainId ? mainId.substring(0, 8) + '...' : '-'}`;
         return `
           <div style="display: flex; flex-direction: column; justify-content: center; height: 100%; padding-left: 10px;">
             <div style="font-weight: 500; color: #333; line-height: 1.2;">${mainId || '-'}</div>
@@ -172,7 +186,7 @@ export class TransactionTableComponent implements OnInit, OnChanges {
       headerName: 'Amount',
       field: 'amount',
       type: 'numericColumn',
-      cellRenderer: (params: { value: number | null; data: { currency: string; }; }) => {
+      cellRenderer: (params: any) => {
         const formattedAmount = params.value != null ? params.value.toFixed(2) : '-';
         const currency = params.data.currency || '-';
         return `
@@ -197,7 +211,7 @@ export class TransactionTableComponent implements OnInit, OnChanges {
       headerName: 'Reason',
       field: 'rejectionReason',
       cellStyle: { cursor: 'pointer' },
-      valueGetter: (params) => params.data.rejectionReason || '-'
+      valueGetter: (params: any) => params.data.rejectionReason || '-'
     },
     {
       headerName: 'Actions',
@@ -225,18 +239,15 @@ export class TransactionTableComponent implements OnInit, OnChanges {
   }
 
   getPaginationPageNumbers(): number[] {
-    if (!this.gridApi) {
-      return [];
-    }
+    if (!this.gridApi) return [];
+
     const totalPages = this.totalPages;
     const currentPage = this.currentPageNumber;
     const maxPagesToShow = 5;
     const pages: number[] = [];
 
     if (totalPages <= maxPagesToShow) {
-      for (let i = 1; i <= totalPages; i++) {
-        pages.push(i);
-      }
+      for (let i = 1; i <= totalPages; i++) pages.push(i);
     } else {
       let startPage = Math.max(1, currentPage - Math.floor(maxPagesToShow / 2));
       let endPage = Math.min(totalPages, startPage + maxPagesToShow - 1);
@@ -250,15 +261,14 @@ export class TransactionTableComponent implements OnInit, OnChanges {
         if (startPage > 2) pages.push(-1);
       }
 
-      for (let i = startPage; i <= endPage; i++) {
-        pages.push(i);
-      }
+      for (let i = startPage; i <= endPage; i++) pages.push(i);
 
       if (endPage < totalPages) {
         if (endPage < totalPages - 1) pages.push(-1);
         pages.push(totalPages);
       }
     }
+
     return pages;
   }
 
@@ -280,22 +290,18 @@ export class TransactionTableComponent implements OnInit, OnChanges {
     }
   }
 
-  // Emits the full transaction object for editing
   onEdit(transaction: Transaction): void {
     this.editClicked.emit(transaction);
   }
 
-  // Emits the _id for delete action
   onDelete(transactionId: string): void {
     this.deleteClicked.emit(transactionId);
   }
 
-  // Emits the _id for accept action
   onAccept(transactionId: string): void {
     this.acceptClicked.emit(transactionId);
   }
 
-  // Emits the _id for reject action
   onReject(transactionId: string): void {
     this.rejectClicked.emit(transactionId);
   }

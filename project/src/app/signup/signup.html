@@ -1,17 +1,17 @@
-<!-- src/app/login/login.component.html -->
-<main class="login-container">
-  <form #loginForm="ngForm" (ngSubmit)="onLogin(loginForm.value)">
-    <h2>Login</h2>
+<!-- src/app/signup/signup.component.html -->
+<main class="signup-container">
+  <form #signupForm="ngForm" (ngSubmit)="onSignup(signupForm.value)">
+    <h2>Sign Up</h2>
+    <input type="text" name="name" placeholder="Name" ngModel required />
     <input type="email" name="email" placeholder="Email" ngModel required />
+    <input type="password" name="password" placeholder="Password" ngModel required />
     <select name="role" ngModel required>
       <option value="" disabled selected>Select Role</option>
       <option value="maker">Maker</option>
       <option value="checker">Checker</option>
       <option value="admin">Admin</option>
     </select>
-    <input type="password" name="password" placeholder="Password" ngModel required />
-    <p class="signup-link">Don't have an account? <a [routerLink]="'/signup'">Sign Up</a></p>
-    <button type="submit" [disabled]="!loginForm.valid">Login</button>
+    <button type="submit" [disabled]="!signupForm.valid">Sign Up</button>
     <p *ngIf="errorMessage" class="error-message">{{ errorMessage }}</p>
   </form>
 </main>

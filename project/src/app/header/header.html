@@ -1,9 +1,11 @@
 <nav class="navbar">
- <div *ngIf="role" class="nav-title">
-  Welcome Back {{ role.toUpperCase() }}!
-</div>
+  <div *ngIf="role && name" class="nav-left">
+    Welcome back {{ name }}!
+  </div>
 
-
+  <div *ngIf="role" class="nav-right">
+    You have logged in as {{ role.toUpperCase() }}.
+  </div>
 
   <div class="nav-links">
     <button (click)="logout()">LOGOUT</button>

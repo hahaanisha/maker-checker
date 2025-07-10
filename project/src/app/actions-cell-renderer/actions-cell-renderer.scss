@@ -1,3 +1,10 @@
+:host {
+  display: flex;
+  align-items: center; 
+  justify-content: center;
+  height: 100%;
+}
+
 .action-buttons {
   display: flex;
   justify-content: center;

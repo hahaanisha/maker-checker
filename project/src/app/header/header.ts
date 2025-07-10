@@ -11,12 +11,17 @@ import { CommonModule } from '@angular/common'; // Import CommonModule for role?
 })
 export class Header {
   // Use a getter to reactively get the role, or update it on logout
-  role: string | null = localStorage.getItem('role');
+  role: string | null = null;
+  name: string | null = null;
+
+    
 
   constructor(private router: Router) {
     // Listen to router events to update role if needed after login
     this.router.events.subscribe(() => {
       this.role = localStorage.getItem('role');
+      this.name = localStorage.getItem('name');
+  
     });
   }
 
