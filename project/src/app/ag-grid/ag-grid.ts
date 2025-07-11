@@ -72,8 +72,7 @@ export class TransactionTableComponent implements OnInit, OnChanges {
     suppressCellFocus: true,
     paginationPageSizeSelector: false,
     suppressPaginationPanel: true,
-    // rowHeight: 48, // Removed if setting via CSS variable --ag-row-height
-    theme: 'legacy', // Assuming you intend to use 'legacy' theme or no theme for custom styles
+    theme: 'legacy',
     
     components: {
       statusCellRenderer: StatusCellRendererComponent,
@@ -82,9 +81,8 @@ export class TransactionTableComponent implements OnInit, OnChanges {
     context: {
       parentComponent: this
     },
-    // Corrected rowSelection for modern AG-Grid (v32+), replacing old string and rowMultiSelectWithClick
     rowSelection:'multiple',
-  
+    
     enableCellTextSelection: true,
     ensureDomOrder: true,
 
@@ -99,7 +97,7 @@ export class TransactionTableComponent implements OnInit, OnChanges {
       if (
         event.data &&
         event.event?.target &&
-        !(event.event.target as HTMLElement).closest('.action-buttons') && // Keep this, as actions are still in a container
+        !(event.event.target as HTMLElement).closest('.action-buttons') && 
         !(event.event.target as HTMLElement).closest('.ag-selection-checkbox')
       ) {
         this.rowClicked.emit(event.data);
@@ -112,6 +110,7 @@ export class TransactionTableComponent implements OnInit, OnChanges {
       if (this.gridOptions.context) {
         this.gridOptions.context.role = this.role;
       }
+      this.updateColumnVisibility(); // Call this on grid ready
       params.api.sizeColumnsToFit();
     },
 
@@ -138,6 +137,8 @@ export class TransactionTableComponent implements OnInit, OnChanges {
     if (this.gridOptions.context) {
       this.gridOptions.context.role = this.role;
     }
+    // Update column visibility on init as well
+    this.updateColumnVisibility();
   }
 
   ngOnChanges(changes: SimpleChanges): void {
@@ -151,89 +152,110 @@ export class TransactionTableComponent implements OnInit, OnChanges {
         this.gridApi.refreshCells({ force: true });
       }
     }
+    // Check for activeTab changes to update column visibility
+    if (changes['activeTab'] && this.gridApi) {
+      this.updateColumnVisibility();
+    }
   }
 
-  public columnDefs: ColDef[] = [
-    {
-      headerName: '',
-      // headerCheckboxSelection: true,
-      checkboxSelection: true,
-      width: 40,
-      minWidth: 70,
-      maxWidth: 70,
-      resizable: false,
-      sortable: false,
-      filter: false,
-      suppressColumnsToolPanel: true,
-      suppressNavigable: true,
-      lockPosition: true,
-    },
-    {
-      headerName: 'ID',
-      field: 'id',
-      minWidth: 120,
-      cellRenderer: (params: any) => {
-        const mainId = params.value;
-        const referenceNum = `Ref: ${mainId ? mainId.substring(0, 8) + '...' : '-'}`;
-        return `
-          <div style="display: flex; flex-direction: column; justify-content: center; height: 100%; padding-left: 10px;">
-            <div style="font-weight: 500; color: #333; line-height: 1.2;">${mainId || '-'}</div>
-            <div style="font-size: 0.8em; color: gray; line-height: 1.2; margin-top: 2px;">${referenceNum}</div>
-          </div>
-        `;
+  private updateColumnVisibility(): void {
+    if (!this.gridApi) return;
+
+    const newColumnDefs: ColDef[] = [
+      {
+        headerName: '',
+        checkboxSelection: true,
+        width: 40,
+        minWidth: 70,
+        maxWidth: 70,
+        resizable: false,
+        sortable: false,
+        filter: false,
+        suppressColumnsToolPanel: true,
+        suppressNavigable: true,
+        lockPosition: true,
       },
-      autoHeight: true,
-      cellStyle: { cursor: 'pointer', 'white-space': 'normal' }
-    },
-    { headerName: 'From (Account)', field: 'fromAccount', cellStyle: { cursor: 'pointer' } },
-    { headerName: 'To (Account)', field: 'toAccount', cellStyle: { cursor: 'pointer' } },
-    {
-      headerName: 'Amount',
-      field: 'amount',
-      type: 'numericColumn',
-      cellRenderer: (params: any) => {
-        const formattedAmount = params.value != null ? params.value.toFixed(2) : '-';
-        const currency = params.data.currency || '-';
-        return `
-          <div style="display: flex; flex-direction: column; justify-content: center; height: 100%; padding-right: 10px; text-align: right;">
-            <div style="font-weight: 500; color: #333; line-height: 1.2;">${formattedAmount}</div>
-            <div style="font-size: 0.8em; color: gray; line-height: 1.2; margin-top: 2px;">${currency}</div>
-          </div>
-        `;
+      {
+        headerName: 'ID',
+        field: 'id',
+        minWidth: 120,
+        cellRenderer: (params: any) => {
+          const mainId = params.value;
+          const referenceNum = `Ref: ${mainId ? mainId.substring(0, 8) + '...' : '-'}`;
+          return `
+            <div style="display: flex; flex-direction: column; justify-content: center; height: 100%; padding-left: 10px;">
+              <div style="font-weight: 500; color: #333; line-height: 1.2;">${mainId || '-'}</div>
+              <div style="font-size: 0.8em; color: gray; line-height: 1.2; margin-top: 2px;">${referenceNum}</div>
+            </div>
+          `;
+        },
+        autoHeight: true,
+        cellStyle: { cursor: 'pointer', 'white-space': 'normal' }
       },
-      autoHeight: true,
-      cellStyle: { cursor: 'pointer', 'white-space': 'normal', 'text-align': 'right' }
-    },
-    { headerName: 'Description', field: 'description', cellStyle: { cursor: 'pointer' } },
-    {
-      headerName: 'Status',
-      field: 'status',
-      cellRenderer: 'statusCellRenderer',
-      cellStyle: { cursor: 'pointer' },
-      minWidth: 120
-    },
-    {
-      headerName: 'Reason',
-      field: 'rejectionReason',
-      cellStyle: { cursor: 'pointer' },
-      valueGetter: (params: any) => params.data.rejectionReason || '-'
-    },
-    {
-      headerName: 'Actions',
-      cellRenderer: 'actionsCellRenderer',
-      width: 80, // Reduced width since it's just a 3-dot button now
-      minWidth: 80,
-      maxWidth: 80,
-      sortable: false,
-      filter: false,
-      resizable: false,
-      cellClass: 'ag-grid-action-cell', // Keep this class for centering the button
-      suppressColumnsToolPanel: true,
-      suppressMovable: true,
-      lockPosition: 'right',
-      flex: 0
+      { headerName: 'From (Account)', field: 'fromAccount', cellStyle: { cursor: 'pointer' } },
+      { headerName: 'To (Account)', field: 'toAccount', cellStyle: { cursor: 'pointer' } },
+      {
+        headerName: 'Amount',
+        field: 'amount',
+        type: 'numericColumn',
+        cellRenderer: (params: any) => {
+          const formattedAmount = params.value != null ? params.value.toFixed(2) : '-';
+          const currency = params.data.currency || '-';
+          return `
+            <div style="display: flex; flex-direction: column; justify-content: center; height: 100%; padding-right: 10px; text-align: right;">
+              <div style="font-weight: 500; color: #333; line-height: 1.2;">${formattedAmount}</div>
+              <div style="font-size: 0.8em; color: gray; line-height: 1.2; margin-top: 2px;">${currency}</div>
+            </div>
+          `;
+        },
+        autoHeight: true,
+        cellStyle: { cursor: 'pointer', 'white-space': 'normal', 'text-align': 'right' }
+      },
+      { headerName: 'Description', field: 'description', cellStyle: { cursor: 'pointer' } },
+      {
+        headerName: 'Status',
+        field: 'status',
+        cellRenderer: 'statusCellRenderer',
+        cellStyle: { cursor: 'pointer' },
+        minWidth: 120
+      },
+    ];
+
+    // Conditionally add 'Reason' column
+    if (this.activeTab !== 'ACCEPTED' && this.activeTab !== 'DELETED') {
+      newColumnDefs.push({
+        headerName: 'Reason',
+        field: 'rejectionReason',
+        cellStyle: { cursor: 'pointer' },
+        valueGetter: (params: any) => params.data.rejectionReason || '-'
+      });
     }
-  ];
+
+    // Conditionally add 'Actions' column
+    if (this.activeTab !== 'REJECTED' && this.activeTab !== 'ACCEPTED' && this.activeTab !== 'DELETED') {
+      newColumnDefs.push({
+        headerName: 'Actions',
+        cellRenderer: 'actionsCellRenderer',
+        width: 80,
+        minWidth: 80,
+        maxWidth: 80,
+        sortable: false,
+        filter: false,
+        resizable: false,
+        cellClass: 'ag-grid-action-cell',
+        suppressColumnsToolPanel: true,
+        suppressMovable: true,
+        lockPosition: 'right',
+        flex: 0
+      });
+    }
+
+    this.gridApi.setGridOption('columnDefs', newColumnDefs);
+    this.gridApi.sizeColumnsToFit();
+  }
+
+  // Define columnDefs as a property for initial setup, it will be updated dynamically
+  public columnDefs: ColDef[] = []; 
 
   get totalPages(): number {
     return this.gridApi ? this.gridApi.paginationGetTotalPages() : 1;
