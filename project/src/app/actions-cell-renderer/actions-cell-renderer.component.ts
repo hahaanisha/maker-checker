@@ -1,10 +1,9 @@
-import { Component } from '@angular/core';
+import { Component, ElementRef, HostListener, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ICellRendererAngularComp } from 'ag-grid-angular';
 import { ICellRendererParams } from 'ag-grid-community';
-
 import { Transaction } from '../interfaces/transaction.interface';
-import { TransactionTableComponent } from '../ag-grid/ag-grid'; // Corrected import path for TransactionTableComponent
+import { TransactionTableComponent } from '../ag-grid/ag-grid';
 
 @Component({
   selector: 'app-actions-cell-renderer',
@@ -23,6 +22,9 @@ export class ActionsCellRendererComponent implements ICellRendererAngularComp {
   showDelete = false;
   showAccept = false;
   showReject = false;
+  isMenuOpen = false;
+
+  @ViewChild('menuContainer', { static: false }) menuContainer!: ElementRef;
 
   agInit(params: ICellRendererParams): void {
     this.params = params;
@@ -54,30 +56,47 @@ export class ActionsCellRendererComponent implements ICellRendererAngularComp {
     this.showReject = isChecker && status === 'PENDING';
   }
 
-  onEditClick(): void {
-    if (this.parentComponent) {
-      this.parentComponent.onEdit(this.transaction);
+  toggleMenu(event: Event): void {
+    event.stopPropagation();
+    this.isMenuOpen = !this.isMenuOpen;
+  }
+
+  @HostListener('document:click', ['$event'])
+  onDocumentClick(event: Event): void {
+    if (
+      this.menuContainer &&
+      this.menuContainer.nativeElement &&
+      !this.menuContainer.nativeElement.contains(event.target)
+    ) {
+      this.isMenuOpen = false;
     }
   }
 
-  onDeleteClick(): void {
-    if (this.parentComponent) {
-      // CRITICAL FIX: Pass MongoDB's _id for operations
-      this.parentComponent.onDelete(this.transaction._id as string);
-    }
+  onEditClick(event: Event): void {
+    event.stopPropagation();
+    this.isMenuOpen = false;
+    this.parentComponent?.onEdit(this.transaction);
   }
 
-  onAcceptClick(): void {
-    if (this.parentComponent) {
-      // CRITICAL FIX: Pass MongoDB's _id for operations
-      this.parentComponent.onAccept(this.transaction._id as string);
-    }
+  onDeleteClick(event: Event): void {
+    event.stopPropagation();
+    this.isMenuOpen = false;
+    this.parentComponent?.onDelete(this.transaction._id as string);
   }
 
-  onRejectClick(): void {
-    if (this.parentComponent) {
-      // CRITICAL FIX: Pass MongoDB's _id for operations
-      this.parentComponent.onReject(this.transaction._id as string);
-    }
+  onAcceptClick(event: Event): void {
+    event.stopPropagation();
+    this.isMenuOpen = false;
+    this.parentComponent?.onAccept(this.transaction._id as string);
+  }
+
+  onRejectClick(event: Event): void {
+    event.stopPropagation();
+    this.isMenuOpen = false;
+    this.parentComponent?.onReject(this.transaction._id as string);
+  }
+
+  hasAnyActions(): boolean {
+    return this.showEdit || this.showDelete || this.showAccept || this.showReject;
   }
 }

@@ -41,6 +41,8 @@ ModuleRegistry.registerModules([AllCommunityModule]);
   ],
   providers: [DatePipe],
   templateUrl: './ag-grid.html',
+  // Note: The ag-grid.scss is now typically applied globally or via a shared style sheet,
+  // but if you prefer component-level, ensure it's uncommented and path is correct.
   // styleUrls: ['./ag-grid.scss']
 })
 export class TransactionTableComponent implements OnInit, OnChanges {
@@ -70,7 +72,9 @@ export class TransactionTableComponent implements OnInit, OnChanges {
     suppressCellFocus: true,
     paginationPageSizeSelector: false,
     suppressPaginationPanel: true,
-    rowHeight: 48,
+    // rowHeight: 48, // Removed if setting via CSS variable --ag-row-height
+    theme: 'legacy', // Assuming you intend to use 'legacy' theme or no theme for custom styles
+    
     components: {
       statusCellRenderer: StatusCellRendererComponent,
       actionsCellRenderer: ActionsCellRendererComponent,
@@ -78,8 +82,9 @@ export class TransactionTableComponent implements OnInit, OnChanges {
     context: {
       parentComponent: this
     },
-    rowSelection: 'multiple',
-    rowMultiSelectWithClick: true,
+    // Corrected rowSelection for modern AG-Grid (v32+), replacing old string and rowMultiSelectWithClick
+    rowSelection:'multiple',
+  
     enableCellTextSelection: true,
     ensureDomOrder: true,
 
@@ -94,7 +99,7 @@ export class TransactionTableComponent implements OnInit, OnChanges {
       if (
         event.data &&
         event.event?.target &&
-        !(event.event.target as HTMLElement).closest('.action-buttons') &&
+        !(event.event.target as HTMLElement).closest('.action-buttons') && // Keep this, as actions are still in a container
         !(event.event.target as HTMLElement).closest('.ag-selection-checkbox')
       ) {
         this.rowClicked.emit(event.data);
@@ -151,7 +156,7 @@ export class TransactionTableComponent implements OnInit, OnChanges {
   public columnDefs: ColDef[] = [
     {
       headerName: '',
-      headerCheckboxSelection: true,
+      // headerCheckboxSelection: true,
       checkboxSelection: true,
       width: 40,
       minWidth: 70,
@@ -162,7 +167,6 @@ export class TransactionTableComponent implements OnInit, OnChanges {
       suppressColumnsToolPanel: true,
       suppressNavigable: true,
       lockPosition: true,
-
     },
     {
       headerName: 'ID',
@@ -217,13 +221,13 @@ export class TransactionTableComponent implements OnInit, OnChanges {
     {
       headerName: 'Actions',
       cellRenderer: 'actionsCellRenderer',
-      width: 320,
-      minWidth: 320,
-      maxWidth: 320,
+      width: 80, // Reduced width since it's just a 3-dot button now
+      minWidth: 80,
+      maxWidth: 80,
       sortable: false,
       filter: false,
       resizable: false,
-      cellClass: 'ag-grid-action-cell',
+      cellClass: 'ag-grid-action-cell', // Keep this class for centering the button
       suppressColumnsToolPanel: true,
       suppressMovable: true,
       lockPosition: 'right',

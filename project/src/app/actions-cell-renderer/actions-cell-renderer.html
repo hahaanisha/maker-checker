@@ -1,6 +1,24 @@
-<div class="action-buttons">
-  <button *ngIf="showEdit" class="edit-btn" (click)="onEditClick()">Edit</button>
-  <button *ngIf="showDelete" class="delete-btn" (click)="onDeleteClick()">Delete</button>
-  <button *ngIf="showAccept" class="accept-btn" (click)="onAcceptClick()">Accept</button>
-  <button *ngIf="showReject" class="reject-btn" (click)="onRejectClick()">Reject</button>
+<div class="action-menu-container" *ngIf="hasAnyActions()" #menuContainer>
+  <button class="menu-trigger" (click)="toggleMenu($event)" [class.active]="isMenuOpen">
+    <i class="fas fa-ellipsis-v"></i>
+  </button>
+
+  <div class="dropdown-menu" [class.show]="isMenuOpen">
+    <button *ngIf="showEdit" class="menu-item edit-item" (click)="onEditClick($event)">
+      <i class="fas fa-edit"></i>
+      <span>Edit</span>
+    </button>
+    <button *ngIf="showDelete" class="menu-item delete-item" (click)="onDeleteClick($event)">
+      <i class="fas fa-trash"></i>
+      <span>Delete</span>
+    </button>
+    <button *ngIf="showAccept" class="menu-item accept-item" (click)="onAcceptClick($event)">
+      <i class="fas fa-check"></i>
+      <span>Accept</span>
+    </button>
+    <button *ngIf="showReject" class="menu-item reject-item" (click)="onRejectClick($event)">
+      <i class="fas fa-times"></i>
+      <span>Reject</span>
+    </button>
+  </div>
 </div>
