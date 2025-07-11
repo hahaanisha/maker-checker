@@ -222,7 +222,7 @@ export class TransactionTableComponent implements OnInit, OnChanges {
     ];
 
     // Conditionally add 'Reason' column
-    if (this.activeTab !== 'ACCEPTED' && this.activeTab !== 'DELETED') {
+    if (this.activeTab === 'REJECTED') { // Only show reason for 'REJECTED' transactions
       newColumnDefs.push({
         headerName: 'Reason',
         field: 'rejectionReason',
