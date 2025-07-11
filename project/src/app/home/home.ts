@@ -14,7 +14,7 @@ import { SidebarComponent } from '../sidebar/sidebar';
 import { ConfirmationModalComponent } from '../shared/modals/confirmation-modal/confirmation';
 import { RejectionReasonModalComponent } from '../shared/modals/rejection-modal/rejection-modal';
 
-import { TransactionService } from '../services/service'; // <--- CRITICAL FIX: Corrected import path
+import { TransactionService } from '../services/service'; // Corrected import path
 
 @Component({
   selector: 'app-home',
@@ -57,6 +57,7 @@ export class HomeComponent implements OnInit {
   sidebarActiveTab: 'overview' | 'history' | 'filter' = 'overview';
 
   transactionList: Transaction[] = [];
+  accountNumbers: string[] = []; // This array will hold the fetched account numbers
 
   agGridDisplayData: Transaction[] = [];
 
@@ -81,13 +82,31 @@ export class HomeComponent implements OnInit {
   gridApi!: GridApi;
 
   selectedRowCount: number = 0;
-  showMassActions: boolean = false; // Controls the mass action bar visibility
+  showMassActions: boolean = false;
 
   constructor() { }
 
   ngOnInit(): void {
     this.role = localStorage.getItem('role');
     this.loadTransactions();
+    this.loadAccountNumbers(); // Ensure this method is called here
+  }
+
+  private loadAccountNumbers(): void {
+    console.log('HomeComponent: Attempting to load account numbers...'); // Debug log
+    this.transactionService.getAccountNumbers()
+      .pipe(
+        tap(data => {
+          this.accountNumbers = data;
+          console.log('HomeComponent: Fetched Account Numbers:', this.accountNumbers); // Debug log
+          this.changeDetectorRef.detectChanges(); // Manually trigger change detection if needed
+        }),
+        catchError(err => {
+          console.error('HomeComponent: Error loading account numbers:', err); // Debug error log
+          return of([]);
+        })
+      )
+      .subscribe();
   }
 
   private loadTransactions(): void {
@@ -133,7 +152,7 @@ export class HomeComponent implements OnInit {
     const selectedFilterStatuses = Object.keys(this.filterOptions.statuses).filter(key => this.filterOptions.statuses[key as keyof typeof this.filterOptions.statuses]);
     if (selectedFilterStatuses.length > 0) {
       if (!selectedFilterStatuses.includes(this.activeTab) || selectedFilterStatuses.length > 1) {
-        filteredData = filteredData.filter(txn => selectedFilterStatuses.includes(txn.status));
+          filteredData = filteredData.filter(txn => selectedFilterStatuses.includes(txn.status));
       }
     }
 
@@ -252,7 +271,7 @@ export class HomeComponent implements OnInit {
 
   onRowSelected(event: { selectedCount: number; selectedRows: Transaction[] }): void {
     this.selectedRowCount = event.selectedCount;
-    this.showMassActions = event.selectedCount > 1; // Show mass actions only if MORE THAN ONE row is selected
+    this.showMassActions = event.selectedCount > 1;
     this.changeDetectorRef.detectChanges();
   }
 
@@ -289,7 +308,7 @@ export class HomeComponent implements OnInit {
       case 'reject':
         this.transactionsToRejectIds = idsToActOn;
         this.promptForRejectionReason(idsToActOn);
-        return; 
+        return;
     }
 
     this.modalMessage = confirmationMessage;
@@ -300,11 +319,11 @@ export class HomeComponent implements OnInit {
   executeModalAction(): void {
     if (this.modalAction) {
       this.modalAction();
-      this.closeConfirmModal(); 
     }
   }
+
   promptForRejectionReason(transactionIds: string[]): void {
-    this.closeConfirmModal(); 
+    this.closeConfirmModal();
     this.closeAllModalsAndSidebars();
     this.currentTransactionForReasonId = transactionIds.length === 1 ? transactionIds[0] : null;
     this.transactionsToRejectIds = transactionIds;
@@ -356,6 +375,8 @@ export class HomeComponent implements OnInit {
           this.selectedRowCount = 0;
           this.showMassActions = false;
           this.changeDetectorRef.detectChanges();
+          this.closeConfirmModal();
+          this.cancelRejectionReason();
         }),
         catchError(err => {
           console.error('Error performing mass action:', err);
@@ -364,7 +385,10 @@ export class HomeComponent implements OnInit {
         })
       )
       .subscribe(() => {
-        this.closeConfirmModal(); // Ensure the modal is closed after the action is completed
+        // This empty subscribe callback is fine, the important logic is in tap and finalize.
+        // However, if you want to ensure the modal closes immediately after the subscription completes
+        // (which is already handled by finalize, but for clarity or if finalize was not used),
+        // you could put it here. Given the current structure, finalize is better.
       });
   }
 
@@ -433,7 +457,7 @@ export class HomeComponent implements OnInit {
     this.sidebarActiveTab = 'overview';
     this.gridApi?.deselectAll();
     this.selectedRowCount = 0;
-    this.showMassActions = false; // Reset mass actions visibility
+    this.showMassActions = false;
     this.changeDetectorRef.detectChanges();
   }
 
@@ -447,7 +471,7 @@ export class HomeComponent implements OnInit {
     this.sidebarActiveTab = 'overview';
     this.gridApi?.deselectAll();
     this.selectedRowCount = 0;
-    this.showMassActions = false; // Reset mass actions visibility
+    this.showMassActions = false;
     this.changeDetectorRef.detectChanges();
   }
 }

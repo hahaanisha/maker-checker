@@ -14,10 +14,12 @@
     </div>
   </div>
 
+  <!-- app-transaction-form is now directly rendered here, it contains its own modal logic -->
   <app-transaction-form
     *ngIf="showAddForm || showEditForm"
     [isEditMode]="showEditForm"
     [transaction]="editingTransaction"
+    [accountNumbers]="accountNumbers"
     (transactionAdded)="onTransactionAdded($event)"
     (transactionUpdated)="onTransactionUpdated($event)"
     (cancel)="onTransactionFormCancel()"
@@ -45,8 +47,6 @@
       <ng-template #deletedTotal>{{ getTransactionsCountForTab('DELETED') }}</ng-template>
     </button>
   </div>
-
- 
 
   <app-transaction-table
     [rowData]="agGridDisplayData"
